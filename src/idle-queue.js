@@ -5,7 +5,7 @@
  */
 
 const util = require('./util');
-const PROMISE_RESOLVE_MAP = new WeakMap();
+const PROMISE_RESOLVE_MAP = new Map();
 const PROMISE_TIMEOUT_MAP = new Map();
 
 /**
@@ -145,6 +145,9 @@ IdleQueue.prototype = {
      * @return {void}
      */
     _removeIdlePromise(promise) {
+        // remove resolve-function
+        PROMISE_RESOLVE_MAP.delete(promise);
+
         // remove timeout if exists
         const timeoutObj = PROMISE_TIMEOUT_MAP.get(promise);
         if (timeoutObj) {
