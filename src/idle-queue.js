@@ -55,7 +55,7 @@ IdleQueue.prototype = {
 
     /**
      * creates a lock in the queue
-     * and creates an unlock-function to remove the lock from the queue
+     * and returns an unlock-function to remove the lock from the queue
      * @return {function} unlock function than must be called afterwards
      */
     lock() {

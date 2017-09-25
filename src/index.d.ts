@@ -1,18 +1,21 @@
-interface options {
+interface Options {
     timeout?: number
 }
 
 declare class IdleQueue {
     constructor(parallels?: number);
+
     lock(): Function;
 
-    wrapCall(fun: Function): any;
+    wrapCall(fun: Function): Promise<any>;
 
-    requestIdlePromise(options): Promise<void>;
+    requestIdlePromise(options?: Options): Promise<void>;
     cancelIdlePromise(prom: Promise<void>);
 
-    requestIdleCallback(cb: Function, options): number;
+    requestIdleCallback(cb: Function, options: Options): number;
     cancelIdleCallback(handle: number);
+
+    clear(): void;
 }
 
 
