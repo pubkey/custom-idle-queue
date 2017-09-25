@@ -1,0 +1,6 @@
+.git/
+log.txt
+test/
+.babelrc
+.eslint.json
+package-lock.json
