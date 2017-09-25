@@ -115,16 +115,19 @@ describe('idle-queue.test.js', () => {
                 const queue = new IdleQueue();
                 await queue.requestIdlePromise();
                 await AsyncTestUtil.wait(10);
+                queue.clear();
             });
             it('should resolve the oldest first', async() => {
                 const queue = new IdleQueue();
                 const order = [];
+                console.log('yyy');
                 queue.requestIdlePromise().then(() => order.push(0));
                 queue.requestIdlePromise().then(() => order.push(1));
                 await AsyncTestUtil.wait();
                 queue.requestIdlePromise().then(() => order.push(2));
                 await AsyncTestUtil.waitUntil(() => order.length === 3);
                 assert.deepEqual(order, [0, 1, 2]);
+                queue.clear();
             });
             it('should resolve after timeout', async() => {
                 const queue = new IdleQueue();
@@ -132,8 +135,11 @@ describe('idle-queue.test.js', () => {
                     () => AsyncTestUtil.wait(200000)
                 );
                 let done = false;
-                queue.requestIdlePromise(50).then(() => done = true);
+                queue.requestIdlePromise({
+                    timeout: 50
+                }).then(() => done = true);
                 await AsyncTestUtil.waitUntil(() => done === true);
+                queue.clear();
             });
             it('should not exec twice when timeout set', async() => {
                 const queue = new IdleQueue();
@@ -144,6 +150,7 @@ describe('idle-queue.test.js', () => {
                 queue.requestIdlePromise(50).then(() => done = done + 1);
                 await AsyncTestUtil.wait(150);
                 assert.equal(done, 1);
+                queue.clear();
             });
         });
     });
