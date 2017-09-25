@@ -25,9 +25,9 @@ const IdleQueue = function(parallels = 1) {
     this._queueCounter = 0;
 
     /**
-     * contains all functions that where added via requestIdlePromise()
-     * and not have been run
-     * @type {Array<function>} _idleCalls with oldest promise last
+     * contains all promises that where added via requestIdlePromise()
+     * and not have been resolved
+     * @type {Array<Promise>} _idleCalls with oldest promise last
      */
     this._idleCalls = [];
 
@@ -212,7 +212,7 @@ IdleQueue.prototype = {
             .then(() => {
 
                 // check if queue empty
-                if (this._queueCounter !== 0) {
+                if (this._queueCounter >= this._parallels) {
                     this._tryIdleCallRunning = false;
                     return;
                 };
@@ -226,7 +226,7 @@ IdleQueue.prototype = {
                 return util.nextTick()
                     .then(() => {
                         // check if queue still empty
-                        if (this._queueCounter !== 0) {
+                        if (this._queueCounter >= this._parallels) {
                             this._tryIdleCallRunning = false;
                             return;
                         }
@@ -259,6 +259,11 @@ IdleQueue.prototype = {
      * @return {void}
      */
     clear() {
+
+        // remove all non-cleared
+        this._idleCalls
+            .forEach(promise => this._removeIdlePromise(promise));
+
         this._queueCounter = 0;
         this._idleCalls = [];
         this._handlePromiseMap = new Map();

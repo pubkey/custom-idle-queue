@@ -29,9 +29,9 @@ var IdleQueue = function IdleQueue() {
     this._queueCounter = 0;
 
     /**
-     * contains all functions that where added via requestIdlePromise()
-     * and not have been run
-     * @type {Array<function>} _idleCalls with oldest promise last
+     * contains all promises that where added via requestIdlePromise()
+     * and not have been resolved
+     * @type {Array<Promise>} _idleCalls with oldest promise last
      */
     this._idleCalls = [];
 
@@ -59,7 +59,7 @@ IdleQueue.prototype = {
 
     /**
      * creates a lock in the queue
-     * and creates an unlock-function to remove the lock from the queue
+     * and returns an unlock-function to remove the lock from the queue
      * @return {function} unlock function than must be called afterwards
      */
     lock: function lock() {
@@ -230,7 +230,7 @@ IdleQueue.prototype = {
         return util.nextTick().then(function () {
 
             // check if queue empty
-            if (_this3._queueCounter !== 0) {
+            if (_this3._queueCounter >= _this3._parallels) {
                 _this3._tryIdleCallRunning = false;
                 return;
             };
@@ -243,7 +243,7 @@ IdleQueue.prototype = {
              */
             return util.nextTick().then(function () {
                 // check if queue still empty
-                if (_this3._queueCounter !== 0) {
+                if (_this3._queueCounter >= _this3._parallels) {
                     _this3._tryIdleCallRunning = false;
                     return;
                 }
@@ -281,6 +281,13 @@ IdleQueue.prototype = {
      * @return {void}
      */
     clear: function clear() {
+        var _this5 = this;
+
+        // remove all non-cleared
+        this._idleCalls.forEach(function (promise) {
+            return _this5._removeIdlePromise(promise);
+        });
+
         this._queueCounter = 0;
         this._idleCalls = [];
         this._handlePromiseMap = new Map();

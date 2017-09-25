@@ -2,6 +2,8 @@ const assert = require('assert');
 const AsyncTestUtil = require('async-test-util');
 const IdleQueue = require('../');
 
+const getWaitFunction = (time = 20) => () => AsyncTestUtil.wait(time);
+
 describe('idle-queue.test.js', () => {
 
     describe('statics', () => {
@@ -275,6 +277,62 @@ describe('idle-queue.test.js', () => {
                 queue.cancelIdleCallback(handle);
                 await AsyncTestUtil.wait(20);
                 assert.ok(!resolved);
+                queue.clear();
+            });
+        });
+        describe('parallels', () => {
+            it('should run 2 in parrallel', async() => {
+                const queue = new IdleQueue(2);
+                assert.equal(queue._parallels, 2);
+                let called = 0;
+                queue.wrapCall(getWaitFunction(50));
+                queue.requestIdlePromise().then(() => called++);
+                await AsyncTestUtil.wait(10);
+                assert.equal(called, 1);
+                queue.clear();
+            });
+            it('should run 10 in parrallel', async() => {
+                console.log('.......');
+                const queue = new IdleQueue(10);
+                let called = 0;
+                queue.wrapCall(getWaitFunction(10000));
+                new Array(9).fill(0).forEach(() => {
+                    queue.requestIdlePromise().then(() => {
+                        called++;
+                    });
+                });
+                await AsyncTestUtil.wait(100);
+                assert.equal(called, 9);
+                queue.clear();
+            });
+        });
+        describe('other', () => {
+            it('should have empty maps when all is done', async() => {
+                const queue = new IdleQueue();
+                let i = 0;
+
+                await queue.wrapCall(
+                    async() => {
+                        await AsyncTestUtil.wait(100);
+                        return 42;
+                    }
+                );
+
+                const handle = queue.requestIdleCallback(
+                    () => i++, {
+                        timeout: 10
+                    });
+                queue.cancelIdleCallback(handle);
+                queue.requestIdleCallback(
+                    () => i++, {
+                        timeout: 10
+                    });
+
+                await AsyncTestUtil.wait(50);
+
+                assert.deepEqual(queue._idleCalls.length, 0);
+                assert.deepEqual(queue._handlePromiseMap.size, 0);
+                assert.deepEqual(queue._promiseHandleMap.size, 0);
                 queue.clear();
             });
         });
