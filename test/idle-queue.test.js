@@ -1,13 +1,13 @@
 const assert = require('assert');
 const AsyncTestUtil = require('async-test-util');
-const IdleQueue = require('../dist/lib/index');
+const IdleQueue = require('../');
 
 describe('idle-queue.test.js', () => {
 
     describe('statics', () => {
         describe('create()', () => {
             it('should create a queue', () => {
-                const queue = IdleQueue.create();
+                const queue = new IdleQueue();
                 assert.ok(queue);
             });
         });
@@ -15,38 +15,42 @@ describe('idle-queue.test.js', () => {
     describe('instance', () => {
         describe('.lock()', () => {
             it('should get a unlock-function while increasing the _queueCounter', () => {
-                const queue = IdleQueue.create();
+                const queue = new IdleQueue();
                 const unlock1 = queue.lock();
                 const unlock2 = queue.lock();
                 assert.equal(typeof unlock1, 'function');
                 assert.equal(typeof unlock2, 'function');
                 assert.equal(queue._queueCounter, 2);
+                queue.clear();
             });
             it('should have the correct lock-amount queue', () => {
-                const queue = IdleQueue.create();
+                const queue = new IdleQueue();
                 new Array(50)
                     .fill(0)
                     .map(() => queue.lock());
                 assert.equal(queue._queueCounter, 50);
+                queue.clear();
             });
         });
         describe('.unlock()', () => {
             it('should not crash when calling unlock', async() => {
-                const queue = IdleQueue.create();
+                const queue = new IdleQueue();
                 const unlock = queue.lock();
                 unlock();
+                queue.clear();
             });
             it('should have an empty queue when unlocked', () => {
-                const queue = IdleQueue.create();
+                const queue = new IdleQueue();
                 const unlocks = new Array(10)
                     .fill(0)
                     .map(() => queue.lock());
                 assert.equal(queue._queueCounter, 10);
                 unlocks.forEach(unlock => unlock());
                 assert.equal(queue._queueCounter, 0);
+                queue.clear();
             });
             it('should not contain the single unlocked nr', () => {
-                const queue = IdleQueue.create();
+                const queue = new IdleQueue();
                 new Array(10)
                     .fill(0)
                     .map(() => queue.lock());
@@ -58,34 +62,39 @@ describe('idle-queue.test.js', () => {
                 assert.equal(queue._queueCounter, 21);
                 unlock();
                 assert.equal(queue._queueCounter, 20);
+                queue.clear();
             });
         });
-        describe('.wrapFunctionWithLocking()', () => {
+        describe('.wrapCall()', () => {
             it('should call the given function and returns the value', async() => {
-                const queue = IdleQueue.create();
-                const res = await queue.wrapFunctionWithLocking(
+                const queue = new IdleQueue();
+                const res = await queue.wrapCall(
                     () => 21 + 21
                 );
                 assert.equal(res, 42);
+                queue.clear();
             });
             it('should have a lock while running the function', async() => {
-                const queue = IdleQueue.create();
-                const promise = queue.wrapFunctionWithLocking(
+                console.log('---------------');
+                const queue = new IdleQueue();
+                const promise = queue.wrapCall(
                     async() => {
-                        await AsyncTestUtil.wait(20);
+                        await AsyncTestUtil.wait(100);
                         return 42;
                     }
                 );
+                console.log('x: ' + queue._queueCounter);
                 assert.equal(queue._queueCounter, 1);
                 const res = await promise;
                 assert.equal(res, 42);
                 assert.equal(queue._queueCounter, 0);
+                queue.clear();
             });
             it('should pass the error if function throws', async() => {
-                const queue = IdleQueue.create();
+                const queue = new IdleQueue();
                 let thrown = false;
                 try {
-                    await queue.wrapFunctionWithLocking(
+                    await queue.wrapCall(
                         async() => {
                             const throwMe = new Error('foobar');
                             throwMe.flag = true;
@@ -98,16 +107,17 @@ describe('idle-queue.test.js', () => {
                 }
                 assert.ok(thrown);
                 assert.equal(queue._queueCounter, 0);
+                queue.clear();
             });
         });
         describe('.requestIdlePromise()', () => {
             it('should resolve the promise', async() => {
-                const queue = IdleQueue.create();
+                const queue = new IdleQueue();
                 await queue.requestIdlePromise();
                 await AsyncTestUtil.wait(10);
             });
             it('should resolve the oldest first', async() => {
-                const queue = IdleQueue.create();
+                const queue = new IdleQueue();
                 const order = [];
                 queue.requestIdlePromise().then(() => order.push(0));
                 queue.requestIdlePromise().then(() => order.push(1));
@@ -117,8 +127,8 @@ describe('idle-queue.test.js', () => {
                 assert.deepEqual(order, [0, 1, 2]);
             });
             it('should resolve after timeout', async() => {
-                const queue = IdleQueue.create();
-                queue.wrapFunctionWithLocking(
+                const queue = new IdleQueue();
+                queue.wrapCall(
                     () => AsyncTestUtil.wait(200000)
                 );
                 let done = false;
@@ -126,8 +136,8 @@ describe('idle-queue.test.js', () => {
                 await AsyncTestUtil.waitUntil(() => done === true);
             });
             it('should not exec twice when timeout set', async() => {
-                const queue = IdleQueue.create();
-                queue.wrapFunctionWithLocking(
+                const queue = new IdleQueue();
+                queue.wrapCall(
                     () => AsyncTestUtil.wait(100)
                 );
                 let done = 0;

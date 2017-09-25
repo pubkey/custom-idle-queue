@@ -25,8 +25,7 @@
         "transform-es2015-block-scoping",
         "transform-object-rest-spread",
         "transform-es3-member-expression-literals",
-        "transform-es3-property-literals",
-        "async-to-promises"
+        "transform-es3-property-literals"
     ],
     "env": {
         "es5": {

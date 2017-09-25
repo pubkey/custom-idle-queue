@@ -1,18 +1,22 @@
+'use strict';
+
 /**
  * this queue tracks the currently running database-interactions
  * so we know when the database is in idle-state and can call
  * requestIdlePromise for semi-important actions
  */
 
-const util = require('./util');
-const PROMISE_RESOLVE_MAP = new WeakMap();
+var util = require('./util');
+var PROMISE_RESOLVE_MAP = new WeakMap();
 
 /**
  * Creates a new Idle-Queue
  * @constructor
  * @param {number} [parallels=1] amount of parrallel runs of the limited-ressource
  */
-const IdleQueue = function(parallels = 1) {
+var IdleQueue = function IdleQueue() {
+    var parallels = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+
     this._parallels = parallels || 1;
 
     /**
@@ -44,39 +48,43 @@ const IdleQueue = function(parallels = 1) {
 };
 
 IdleQueue.prototype = {
-
-    _newHandleNumber() {
+    _newHandleNumber: function _newHandleNumber() {
         this._lastHandleNumber++;
         return this._lastHandleNumber;
     },
+
 
     /**
      * creates a lock in the queue
      * and creates an unlock-function to remove the lock from the queue
      * @return {function} unlock function than must be called afterwards
      */
-    lock() {
+    lock: function lock() {
+        var _this = this;
+
         console.log('lock()');
         this._queueCounter++;
-        const unlock = (() => this._unLock()).bind(this);
+        var unlock = function () {
+            return _this._unLock();
+        }.bind(this);
         return unlock;
     },
-
-    _unLock() {
+    _unLock: function _unLock() {
         console.log('unlock() ' + this._queueCounter);
         this._queueCounter--;
         this._tryIdleCall();
     },
+
 
     /**
      * wraps a function with lock/unlock and runs it
      * @param  {function}  fun
      * @return {Promise<any>}
      */
-    wrapCall(fun) {
-        const unlock = this.lock();
+    wrapCall: function wrapCall(fun) {
+        var unlock = this.lock();
 
-        let maybePromise;
+        var maybePromise = void 0;
         try {
             maybePromise = fun();
         } catch (err) {
@@ -84,40 +92,44 @@ IdleQueue.prototype = {
             throw err;
         }
 
-        return Promise.resolve(maybePromise)
-            .then(ret => {
-                // sucessfull -> unlock before return
-                unlock();
-                return ret;
-            })
-            .catch(err => {
-                // not sucessfull -> unlock before throwing
-                unlock();
-                throw err;
-            });
+        return Promise.resolve(maybePromise).then(function (ret) {
+            // sucessfull -> unlock before return
+            unlock();
+            return ret;
+        })['catch'](function (err) {
+            // not sucessfull -> unlock before throwing
+            unlock();
+            throw err;
+        });
     },
+
 
     /**
      * does the same as requestIdleCallback() but uses promises instead of the callback
      * @param {{timeout?: number}} options like timeout
      * @return {Promise<void>} promise that resolves when the database is in idle-mode
      */
-    requestIdlePromise(options) {
-        options = options || {};
-        let timeoutObj;
-        let resolve;
+    requestIdlePromise: function requestIdlePromise(options) {
+        var _this2 = this;
 
-        const prom = new Promise(res => resolve = res);
-        const resolveFromOutside = () => {
+        options = options || {};
+        var timeoutObj = void 0;
+        var resolve = void 0;
+
+        var prom = new Promise(function (res) {
+            return resolve = res;
+        });
+        var resolveFromOutside = function resolveFromOutside() {
             console.log('resolveFromOutside()');
             timeoutObj && clearTimeout(timeoutObj);
-            this._removeIdlePromise(prom);
+            _this2._removeIdlePromise(prom);
             resolve();
         };
         PROMISE_RESOLVE_MAP.set(prom, resolveFromOutside);
 
-        if (options.timeout) { // if timeout has passed, resolve promise even if not idle
-            timeoutObj = setTimeout(() => {
+        if (options.timeout) {
+            // if timeout has passed, resolve promise even if not idle
+            timeoutObj = setTimeout(function () {
                 PROMISE_RESOLVE_MAP.get(prom)();
             }, options.timeout);
         }
@@ -127,28 +139,29 @@ IdleQueue.prototype = {
         this._tryIdleCall();
         return prom;
     },
-    cancelIdlePromise(promise) {
+    cancelIdlePromise: function cancelIdlePromise(promise) {
         // TODO
         this._removeIdlePromise(promise);
         this._removeIdlePromise(promise);
     },
+
 
     /**
      * removes the promis from the queue and maps and also its corresponding handle-number
      * @param  {Promise} promise from requestIdlePromise()
      * @return {void}
      */
-    _removeIdlePromise(promise) {
+    _removeIdlePromise: function _removeIdlePromise(promise) {
         // remove handle-nr if exists
-        const handle = this._promiseHandleMap.get(promise);
-        this._handlePromiseMap.delete(handle);
-        this._promiseHandleMap.delete(promise);
+        var handle = this._promiseHandleMap.get(promise);
+        this._handlePromiseMap['delete'](handle);
+        this._promiseHandleMap['delete'](promise);
 
         // remove from queue
-        const index = this._idleCalls.indexOf(promise);
+        var index = this._idleCalls.indexOf(promise);
         this._idleCalls.splice(index, 1);
-
     },
+
 
     /**
      * api equal to
@@ -157,17 +170,20 @@ IdleQueue.prototype = {
      * @param  {options}   options  [description]
      * @return {number} handle which can be used with cancelIdleCallback()
      */
-    requestIdleCallback(callback, options) {
-        const handle = this._newHandleNumber();
-        const promise = this.requestIdlePromise(options);
+    requestIdleCallback: function requestIdleCallback(callback, options) {
+        var handle = this._newHandleNumber();
+        var promise = this.requestIdlePromise(options);
 
         this._handlePromiseMap.set(handle, promise);
         this._promiseHandleMap.set(promise, handle);
 
-        promise.then(() => callback());
+        promise.then(function () {
+            return callback();
+        });
 
         return handle;
     },
+
 
     /**
      * API equal to
@@ -175,74 +191,79 @@ IdleQueue.prototype = {
      * @param  {number} handle returned from requestIdleCallback()
      * @return {void}
      */
-    cancelIdleCallback(handle) {
-        const promise = this._handlePromiseMap.get(handle);
+    cancelIdleCallback: function cancelIdleCallback(handle) {
+        var promise = this._handlePromiseMap.get(handle);
         this.cancelIdlePromise(promise);
     },
+
 
     /**
      * resolves the last entry of this._idleCalls
      * but only if the queue is empty
      * @return {Promise}
      */
-    _tryIdleCall() {
+    _tryIdleCall: function _tryIdleCall() {
+        var _this3 = this;
+
         // ensure this does not run in parallel
-        if (this._tryIdleCallRunning || this._idleCalls.length === 0)
-            return;
+        if (this._tryIdleCallRunning || this._idleCalls.length === 0) return;
         this._tryIdleCallRunning = true;
 
         // w8 one tick
-        return util.nextTick()
-            .then(() => {
+        return util.nextTick().then(function () {
 
-                // check if queue empty
-                if (this._queueCounter !== 0) {
-                    this._tryIdleCallRunning = false;
+            // check if queue empty
+            if (_this3._queueCounter !== 0) {
+                _this3._tryIdleCallRunning = false;
+                return;
+            };
+
+            /**
+             * wait 1 tick here
+             * because many functions do IO->CPU->IO
+             * which means the queue is empty for a short time
+             * but the db is not idle
+             */
+            return util.nextTick().then(function () {
+                // check if queue still empty
+                if (_this3._queueCounter !== 0) {
+                    _this3._tryIdleCallRunning = false;
                     return;
-                };
+                }
 
-                /**
-                 * wait 1 tick here
-                 * because many functions do IO->CPU->IO
-                 * which means the queue is empty for a short time
-                 * but the db is not idle
-                 */
-                return util.nextTick()
-                    .then(() => {
-                        // check if queue still empty
-                        if (this._queueCounter !== 0) {
-                            this._tryIdleCallRunning = false;
-                            return;
-                        }
-
-                        // db is idle
-                        this._resolveOneIdleCall();
-                        this._tryIdleCallRunning = false;
-                    });
+                // db is idle
+                _this3._resolveOneIdleCall();
+                _this3._tryIdleCallRunning = false;
             });
+        });
     },
+
 
     /**
      * processes the oldest call of the idleCalls-queue
      * @return {Promise<void>}
      */
-    _resolveOneIdleCall() {
+    _resolveOneIdleCall: function _resolveOneIdleCall() {
+        var _this4 = this;
+
         if (this._idleCalls.length === 0) return;
 
-        const oldestPromise = this._idleCalls[this._idleCalls.length - 1];
-        const resolveFun = PROMISE_RESOLVE_MAP.get(oldestPromise);
+        var oldestPromise = this._idleCalls[this._idleCalls.length - 1];
+        var resolveFun = PROMISE_RESOLVE_MAP.get(oldestPromise);
         resolveFun();
 
         // try to call the next tick
-        return util.nextTick()
-            .then(() => this._tryIdleCall());
+        return util.nextTick().then(function () {
+            return _this4._tryIdleCall();
+        });
     },
+
 
     /**
      * clears and resets everything
      * @return {void}
      */
-    clear() {
+    clear: function clear() {
         this._queueCounter = 0;
         this._idleCalls = [];
         this._handlePromiseMap = new Map();
