@@ -180,6 +180,18 @@ describe('idle-queue.test.js', () => {
                 queue.cancelIdlePromise(randomPromise);
                 queue.clear();
             });
+            it('should not resolve with timeout', async() => {
+                const queue = new IdleQueue();
+                let resolved = false;
+                const promise = queue.requestIdlePromise({
+                    timeout: 10
+                });
+                promise.then(() => resolved = true);
+                queue.cancelIdlePromise(promise);
+                await AsyncTestUtil.wait(20);
+                assert.ok(!resolved);
+                queue.clear();
+            });
         });
         describe('.requestIdleCallback()', () => {
             it('should run the callback', async() => {
@@ -251,6 +263,18 @@ describe('idle-queue.test.js', () => {
             it('should not crash when giving a random handle', async() => {
                 const queue = new IdleQueue();
                 queue.cancelIdleCallback(1337);
+                queue.clear();
+            });
+            it('should not resolve with timeout', async() => {
+                const queue = new IdleQueue();
+                let resolved = false;
+                const handle = queue.requestIdleCallback(
+                    () => resolved = true, {
+                        timeout: 10
+                    });
+                queue.cancelIdleCallback(handle);
+                await AsyncTestUtil.wait(20);
+                assert.ok(!resolved);
                 queue.clear();
             });
         });

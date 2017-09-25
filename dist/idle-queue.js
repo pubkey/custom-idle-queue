@@ -8,6 +8,7 @@
 
 var util = require('./util');
 var PROMISE_RESOLVE_MAP = new WeakMap();
+var PROMISE_TIMEOUT_MAP = new Map();
 
 /**
  * Creates a new Idle-Queue
@@ -46,6 +47,8 @@ var IdleQueue = function IdleQueue() {
     this._handlePromiseMap = new Map();
     this._promiseHandleMap = new Map();
 };
+
+// STATICS
 
 IdleQueue.prototype = {
     _newHandleNumber: function _newHandleNumber() {
@@ -113,7 +116,6 @@ IdleQueue.prototype = {
         var _this2 = this;
 
         options = options || {};
-        var timeoutObj = void 0;
         var resolve = void 0;
 
         var prom = new Promise(function (res) {
@@ -121,7 +123,6 @@ IdleQueue.prototype = {
         });
         var resolveFromOutside = function resolveFromOutside() {
             console.log('resolveFromOutside()');
-            timeoutObj && clearTimeout(timeoutObj);
             _this2._removeIdlePromise(prom);
             resolve();
         };
@@ -129,9 +130,10 @@ IdleQueue.prototype = {
 
         if (options.timeout) {
             // if timeout has passed, resolve promise even if not idle
-            timeoutObj = setTimeout(function () {
+            var timeoutObj = setTimeout(function () {
                 PROMISE_RESOLVE_MAP.get(prom)();
             }, options.timeout);
+            PROMISE_TIMEOUT_MAP.set(prom, timeoutObj);
         }
 
         this._idleCalls.unshift(prom);
@@ -157,6 +159,13 @@ IdleQueue.prototype = {
      * @return {void}
      */
     _removeIdlePromise: function _removeIdlePromise(promise) {
+        // remove timeout if exists
+        var timeoutObj = PROMISE_TIMEOUT_MAP.get(promise);
+        if (timeoutObj) {
+            clearTimeout(timeoutObj);
+            PROMISE_TIMEOUT_MAP['delete'](promise);
+        }
+
         // remove handle-nr if exists
         var handle = this._promiseHandleMap.get(promise);
         this._handlePromiseMap['delete'](handle);

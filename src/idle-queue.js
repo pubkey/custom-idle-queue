@@ -6,6 +6,7 @@
 
 const util = require('./util');
 const PROMISE_RESOLVE_MAP = new WeakMap();
+const PROMISE_TIMEOUT_MAP = new Map();
 
 /**
  * Creates a new Idle-Queue
@@ -42,6 +43,8 @@ const IdleQueue = function(parallels = 1) {
     this._handlePromiseMap = new Map();
     this._promiseHandleMap = new Map();
 };
+
+// STATICS
 
 IdleQueue.prototype = {
 
@@ -104,22 +107,21 @@ IdleQueue.prototype = {
      */
     requestIdlePromise(options) {
         options = options || {};
-        let timeoutObj;
         let resolve;
 
         const prom = new Promise(res => resolve = res);
         const resolveFromOutside = () => {
             console.log('resolveFromOutside()');
-            timeoutObj && clearTimeout(timeoutObj);
             this._removeIdlePromise(prom);
             resolve();
         };
         PROMISE_RESOLVE_MAP.set(prom, resolveFromOutside);
 
         if (options.timeout) { // if timeout has passed, resolve promise even if not idle
-            timeoutObj = setTimeout(() => {
+            const timeoutObj = setTimeout(() => {
                 PROMISE_RESOLVE_MAP.get(prom)();
             }, options.timeout);
+            PROMISE_TIMEOUT_MAP.set(prom, timeoutObj);
         }
 
         this._idleCalls.unshift(prom);
@@ -143,6 +145,13 @@ IdleQueue.prototype = {
      * @return {void}
      */
     _removeIdlePromise(promise) {
+        // remove timeout if exists
+        const timeoutObj = PROMISE_TIMEOUT_MAP.get(promise);
+        if (timeoutObj) {
+            clearTimeout(timeoutObj);
+            PROMISE_TIMEOUT_MAP.delete(promise);
+        }
+
         // remove handle-nr if exists
         const handle = this._promiseHandleMap.get(promise);
         this._handlePromiseMap.delete(handle);
