@@ -7,17 +7,15 @@
     "idle",
     "performance"
   ],
-  "main": "./dist/lib/index.js",
-  "jsnext:main": "./dist/es/index.js",
-  "module": "./dist/es/index.js",
+  "main": "./dist/index.js",
   "types": "./src/index.d.ts",
   "scripts": {
     "test": "npm run build && mocha -b",
     "lint": "eslint src test",
     "clear": "rimraf -rf ./dist",
     "build:es6": "rimraf -rf dist/es && cross-env NODE_ENV=es6 babel src --out-dir dist/es",
-    "build:es5": "cross-env NODE_ENV=es5 node node_modules/babel-cli/bin/babel.js src --out-dir dist/lib",
-    "build": "npm run clear && npm run build:es6 && npm run build:es5"
+    "build:es5": "cross-env NODE_ENV=es5 node node_modules/babel-cli/bin/babel.js src --out-dir dist/",
+    "build": "npm run clear && npm run build:es5"
   },
   "repository": {
     "type": "git",
@@ -36,6 +34,7 @@
     "babel-core": "6.26.0",
     "babel-eslint": "8.0.0",
     "babel-loader": "7.1.2",
+    "babel-plugin-async-to-promises": "^1.0.5",
     "babel-plugin-transform-async-to-generator": "6.24.1",
     "babel-plugin-transform-class-properties": "6.24.1",
     "babel-plugin-transform-es2015-block-scoping": "6.26.0",

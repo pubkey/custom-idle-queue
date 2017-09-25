@@ -4,26 +4,34 @@
  * requestIdlePromise for semi-important actions
  */
 
-import * as util from './util';
+const util = require('./util');
 const PROMISE_RESOLVE_MAP = new WeakMap();
 
-export default class IdleQueue {
-    constructor() {
-        /**
-         * each lock() increased this number
-         * each unlock() decreases this number
-         * If _queueCounter==0, the state is in idle
-         * @type {Number}
-         */
-        this._queueCounter = 0;
+/**
+ * Creates a new Idle-Queue
+ * @constructor
+ * @param {number} [parallels=1] amount of parrallel runs of the limited-ressource
+ */
+const IdleQueue = function(parallels) {
+    this._parallels = parallels || 1;
 
-        /**
-         * contains all functions that where added via requestIdlePromise()
-         * and not have been run
-         * @type {Array<function>} with oldest promise last
-         */
-        this._idleCalls = [];
-    }
+    /**
+     * each lock() increased this number
+     * each unlock() decreases this number
+     * If _queueCounter==0, the state is in idle
+     * @type {Number}
+     */
+    this._queueCounter = 0;
+
+    /**
+     * contains all functions that where added via requestIdlePromise()
+     * and not have been run
+     * @type {Array<function>} _idleCalls with oldest promise last
+     */
+    this._idleCalls = [];
+};
+
+IdleQueue.prototype = {
 
     /**
      * creates a lock in the queue
@@ -34,12 +42,12 @@ export default class IdleQueue {
         this._queueCounter++;
         const unlock = (() => this._unLock()).bind(this);
         return unlock;
-    }
+    },
 
     _unLock() {
         this._queueCounter--;
         this._tryIdleCall();
-    }
+    },
 
     /**
      * wraps a function with lock/unlock and runs it
@@ -59,7 +67,7 @@ export default class IdleQueue {
         // sucessfull -> unlock before return
         unlock();
         return ret;
-    }
+    },
 
 
     /**
@@ -69,7 +77,7 @@ export default class IdleQueue {
     _removeIdleCall(prom) {
         const index = this._idleCalls.indexOf(prom);
         this._idleCalls.splice(index, 1);
-    }
+    },
 
     /**
      * use this to run things when the database has nothing to do
@@ -98,17 +106,17 @@ export default class IdleQueue {
 
         this._tryIdleCall();
         return prom;
-    }
-    cancelIdlePromise(){
+    },
+    cancelIdlePromise() {
         // TODO
-    }
+    },
 
-    requestIdleCallback(){
+    requestIdleCallback() {
         // TODO
-    }
-    cancelIdleCallback(){
+    },
+    cancelIdleCallback() {
         // TODO
-    }
+    },
 
     /**
      * resolves the last entry of this._idleCalls
@@ -145,7 +153,7 @@ export default class IdleQueue {
         // db is idle
         this._resolveOneIdleCall();
         this._tryIdleCallRunning = false;
-    }
+    },
 
     /**
      * processes the oldest call of the idleCalls-queue
@@ -161,4 +169,6 @@ export default class IdleQueue {
         // try to call the next
         this._tryIdleCall();
     }
-}
+};
+
+module.exports = IdleQueue;

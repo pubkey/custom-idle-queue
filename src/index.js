@@ -1,4 +1,2 @@
-import IdleQueue from './idle-queue';
-
-
-export default IdleQueue;
+const IdleQueue = require('./idle-queue');
+module.exports = IdleQueue;
