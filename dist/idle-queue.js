@@ -65,7 +65,6 @@ IdleQueue.prototype = {
     lock: function lock() {
         var _this = this;
 
-        console.log('lock()');
         this._queueCounter++;
         var unlock = function () {
             return _this._unLock();
@@ -73,7 +72,6 @@ IdleQueue.prototype = {
         return unlock;
     },
     _unLock: function _unLock() {
-        console.log('unlock() ' + this._queueCounter);
         this._queueCounter--;
         this._tryIdleCall();
     },
@@ -122,7 +120,6 @@ IdleQueue.prototype = {
             return resolve = res;
         });
         var resolveFromOutside = function resolveFromOutside() {
-            console.log('resolveFromOutside()');
             _this2._removeIdlePromise(prom);
             resolve();
         };

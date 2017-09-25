@@ -77,7 +77,6 @@ describe('idle-queue.test.js', () => {
                 queue.clear();
             });
             it('should have a lock while running the function', async() => {
-                console.log('---------------');
                 const queue = new IdleQueue();
                 const promise = queue.wrapCall(
                     async() => {
@@ -85,7 +84,6 @@ describe('idle-queue.test.js', () => {
                         return 42;
                     }
                 );
-                console.log('x: ' + queue._queueCounter);
                 assert.equal(queue._queueCounter, 1);
                 const res = await promise;
                 assert.equal(res, 42);
@@ -122,7 +120,6 @@ describe('idle-queue.test.js', () => {
             it('should resolve the oldest first', async() => {
                 const queue = new IdleQueue();
                 const order = [];
-                console.log('yyy');
                 queue.requestIdlePromise().then(() => order.push(0));
                 queue.requestIdlePromise().then(() => order.push(1));
                 await AsyncTestUtil.wait();
@@ -207,7 +204,6 @@ describe('idle-queue.test.js', () => {
             it('should resolve the oldest first', async() => {
                 const queue = new IdleQueue();
                 const order = [];
-                console.log('yyy');
                 queue.requestIdleCallback(() => order.push(0));
                 queue.requestIdleCallback(() => order.push(1));
                 await AsyncTestUtil.wait();
@@ -292,7 +288,6 @@ describe('idle-queue.test.js', () => {
                 queue.clear();
             });
             it('should run 10 in parrallel', async() => {
-                console.log('.......');
                 const queue = new IdleQueue(10);
                 let called = 0;
                 queue.wrapCall(getWaitFunction(10000));

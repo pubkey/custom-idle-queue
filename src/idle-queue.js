@@ -59,14 +59,12 @@ IdleQueue.prototype = {
      * @return {function} unlock function than must be called afterwards
      */
     lock() {
-        console.log('lock()');
         this._queueCounter++;
         const unlock = (() => this._unLock()).bind(this);
         return unlock;
     },
 
     _unLock() {
-        console.log('unlock() ' + this._queueCounter);
         this._queueCounter--;
         this._tryIdleCall();
     },
@@ -111,7 +109,6 @@ IdleQueue.prototype = {
 
         const prom = new Promise(res => resolve = res);
         const resolveFromOutside = () => {
-            console.log('resolveFromOutside()');
             this._removeIdlePromise(prom);
             resolve();
         };
