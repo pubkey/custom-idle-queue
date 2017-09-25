@@ -144,12 +144,113 @@ describe('idle-queue.test.js', () => {
             it('should not exec twice when timeout set', async() => {
                 const queue = new IdleQueue();
                 queue.wrapCall(
+                    () => AsyncTestUtil.wait(20)
+                );
+                let done = 0;
+                queue.requestIdlePromise({
+                    timeout: 50
+                }).then(() => done = done + 1);
+                await AsyncTestUtil.wait(150);
+                assert.equal(done, 1);
+                queue.clear();
+            });
+        });
+        describe('.cancelIdlePromise()', () => {
+            it('should not resolve the promise', async() => {
+                const queue = new IdleQueue();
+                let resolved = false;
+                const promise = queue.requestIdlePromise();
+                promise.then(() => resolved = true);
+                queue.cancelIdlePromise(promise);
+                await AsyncTestUtil.wait(10);
+                assert.equal(resolved, false);
+                queue.clear();
+            });
+            it('should not crash when called twice on same promise', async() => {
+                const queue = new IdleQueue();
+                const promise = queue.requestIdlePromise();
+                promise.then(() => resolved = true);
+                queue.cancelIdlePromise(promise);
+                queue.cancelIdlePromise(promise);
+                queue.clear();
+            });
+            it('should not crash when giving a random promise', async() => {
+                const queue = new IdleQueue();
+                const randomPromise = AsyncTestUtil.wait(10);
+                queue.cancelIdlePromise(randomPromise);
+                queue.clear();
+            });
+        });
+        describe('.requestIdleCallback()', () => {
+            it('should run the callback', async() => {
+                const queue = new IdleQueue();
+                let run = false;
+                await queue.requestIdleCallback(() => run = true);
+                await AsyncTestUtil.wait(10);
+                assert.ok(run);
+                queue.clear();
+            });
+            it('should resolve the oldest first', async() => {
+                const queue = new IdleQueue();
+                const order = [];
+                console.log('yyy');
+                queue.requestIdleCallback(() => order.push(0));
+                queue.requestIdleCallback(() => order.push(1));
+                await AsyncTestUtil.wait();
+                queue.requestIdleCallback(() => order.push(2));
+                await AsyncTestUtil.waitUntil(() => order.length === 3);
+                assert.deepEqual(order, [0, 1, 2]);
+                queue.clear();
+            });
+            it('should resolve after timeout', async() => {
+                const queue = new IdleQueue();
+                queue.wrapCall(
+                    () => AsyncTestUtil.wait(200000)
+                );
+                let done = false;
+                queue.requestIdleCallback(() => done = true, {
+                    timeout: 50
+                });
+                await AsyncTestUtil.waitUntil(() => done === true);
+                queue.clear();
+            });
+            it('should not exec twice when timeout set', async() => {
+                const queue = new IdleQueue();
+                queue.wrapCall(
                     () => AsyncTestUtil.wait(100)
                 );
                 let done = 0;
-                queue.requestIdlePromise(50).then(() => done = done + 1);
+                queue.requestIdleCallback(() => done = done + 1, {
+                    timeout: 50
+                });
                 await AsyncTestUtil.wait(150);
                 assert.equal(done, 1);
+                queue.clear();
+            });
+        });
+        describe('.cancelIdleCallback()', () => {
+            it('should not resolve the promise', async() => {
+                const queue = new IdleQueue();
+                let resolved = false;
+                const handle = queue.requestIdleCallback(() => resolved = true);
+                assert.equal(typeof handle, 'number');
+                queue.cancelIdleCallback(handle);
+                await AsyncTestUtil.wait(10);
+                assert.equal(resolved, false);
+                queue.clear();
+            });
+            it('should not crash when called twice on same handle', async() => {
+                const queue = new IdleQueue();
+                let resolved = false;
+                const handle = queue.requestIdleCallback(() => resolved = true);
+                queue.cancelIdleCallback(handle);
+                queue.cancelIdleCallback(handle);
+                assert.equal(resolved, false);
+                queue.clear();
+            });
+            it('should not crash when giving a random handle', async() => {
+                const queue = new IdleQueue();
+                queue.cancelIdleCallback(1337);
                 queue.clear();
             });
         });

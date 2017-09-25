@@ -127,8 +127,12 @@ IdleQueue.prototype = {
         this._tryIdleCall();
         return prom;
     },
+    /**
+     * remove the promise so it will never be resolved
+     * @param  {Promise} promise from requestIdlePromise()
+     * @return {void}
+     */
     cancelIdlePromise(promise) {
-        // TODO
         this._removeIdlePromise(promise);
         this._removeIdlePromise(promise);
     },
