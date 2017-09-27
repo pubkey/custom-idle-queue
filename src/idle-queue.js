@@ -48,6 +48,10 @@ const IdleQueue = function(parallels = 1) {
 
 IdleQueue.prototype = {
 
+    isIdle() {
+        return this._queueCounter < this._parallels;
+    },
+
     _newHandleNumber() {
         this._lastHandleNumber++;
         return this._lastHandleNumber;
@@ -209,7 +213,7 @@ IdleQueue.prototype = {
             .then(() => {
 
                 // check if queue empty
-                if (this._queueCounter >= this._parallels) {
+                if (!this.isIdle()) {
                     this._tryIdleCallRunning = false;
                     return;
                 };
@@ -223,7 +227,7 @@ IdleQueue.prototype = {
                 return util.nextTick()
                     .then(() => {
                         // check if queue still empty
-                        if (this._queueCounter >= this._parallels) {
+                        if (!this.isIdle()) {
                             this._tryIdleCallRunning = false;
                             return;
                         }

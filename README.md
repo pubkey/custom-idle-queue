@@ -15,6 +15,7 @@ const IdleQueue = require('custom-idle-queue');
 // create a new queue
 const myQueue = new IdleQueue();
 
+
 // wrap all calls to your limited ressource
 const readFromDatabase = key => myQueue.wrapCall(
     () => pseudoDatabaseModule.get(key)
@@ -74,7 +75,34 @@ This module can be used on any limited ressource like
 - Database-Calls
 - Service-Worker-Calls
 - Animations
-- Heavy Calculations
+
+## Limitations
+
+- **IdleQueue cannot predict the future**
+
+When you start a `backgroundTask` first and the the `importantTask` afterwards, the `backgroundTask` will slow down the `importantTask` because it is already running. To prevent this, you should use `requestIdlePromise` as granular as possible. The backgroundTask-function from the example would be better when it awaits the idle-state before each usage of the limited ressource. This will ensure that the `backgroundTask` will be paused until the `importantTask` has finished.
+
+```js
+// this is the background task
+const backgroundTask = async function cleanUpOldClicks() {
+    await myQueue.requestIdlePromise(); // request idle-state each time
+    const newest = await readFromDatabase('nr');
+    const limitDate = new Date().getTime() - 1000*60*60;
+    for (let i = 0; i < newest; i++) {
+        await myQueue.requestIdlePromise(); // request idle-state each time
+        const date = await readFromDatabase('time_' + i);
+        if(date < limitDate){
+            await myQueue.requestIdlePromise(); // request idle-state each time
+            await deleteFromDatabase('time_' + i);
+        }
+    }
+}
+```
+
+- **You cannot optimize CPU-only ressources**
+
+Because javascript runs in a single process only, it doesn't make sense to define CPU as limited ressource. For example if you have a CPU-only-Function like `calculatePrimeNumber`, you should not limit the acess to the function with an idle-queue because at the time you call `idleQueue.lock()` or `idleQueue..wrapCall()` the process will instantly run `calculatePrimeNumber` before it even can change it's state.
+
 
 
 ## Browser-Support

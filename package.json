@@ -32,7 +32,7 @@
     "async-test-util": "^1.2.0",
     "babel-cli": "6.26.0",
     "babel-core": "6.26.0",
-    "babel-eslint": "8.0.0",
+    "babel-eslint": "8.0.1",
     "babel-loader": "7.1.2",
     "babel-plugin-async-to-promises": "^1.0.5",
     "babel-plugin-transform-async-to-generator": "6.24.1",
@@ -52,7 +52,7 @@
     "babel-preset-es2017": "6.24.1",
     "babel-preset-latest": "6.24.1",
     "cross-env": "5.0.5",
-    "eslint": "4.3.0",
+    "eslint": "4.7.2",
     "mocha": "3.5.3",
     "rimraf": "2.6.2"
   },

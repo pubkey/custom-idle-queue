@@ -67,6 +67,19 @@ describe('idle-queue.test.js', () => {
                 queue.clear();
             });
         });
+        describe('.isIdle()', () => {
+            it('should by idle by default', () => {
+                const queue = new IdleQueue();
+                assert.ok(queue.isIdle());
+                queue.clear();
+            });
+            it('should return false if not idle', () => {
+                const queue = new IdleQueue();
+                queue.lock();
+                assert.equal(false, queue.isIdle());
+                queue.clear();
+            });
+        });
         describe('.wrapCall()', () => {
             it('should call the given function and returns the value', async() => {
                 const queue = new IdleQueue();
