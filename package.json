@@ -1,11 +1,12 @@
 {
   "name": "custom-idle-queue",
-  "version": "1.2.0",
+  "version": "1.0.0",
   "description": "Optimize the speed of important tasks on limited ressources",
   "keywords": [
     "requestIdleCallback",
     "idle",
-    "performance"
+    "performance",
+    "optimisation"
   ],
   "main": "./dist/index.js",
   "types": "./src/index.d.ts",
@@ -17,6 +18,7 @@
     "build:es5": "cross-env NODE_ENV=es5 node node_modules/babel-cli/bin/babel.js src --out-dir dist/",
     "build": "npm run clear && npm run build:es5"
   },
+  "homepage": "https://github.com/pubkey/custom-idle-queue/blob/master/docs.md",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pubkey/custom-idle-queue.git"
@@ -29,12 +31,12 @@
   "homepage": "https://github.com/pubkey/custom-idle-queue#readme",
   "devDependencies": {
     "assert": "1.4.1",
-    "async-test-util": "^1.2.0",
+    "async-test-util": "1.2.0",
     "babel-cli": "6.26.0",
     "babel-core": "6.26.0",
     "babel-eslint": "8.0.1",
     "babel-loader": "7.1.2",
-    "babel-plugin-async-to-promises": "^1.0.5",
+    "babel-plugin-async-to-promises": "1.0.5",
     "babel-plugin-transform-async-to-generator": "6.24.1",
     "babel-plugin-transform-class-properties": "6.24.1",
     "babel-plugin-transform-es2015-block-scoping": "6.26.0",
@@ -56,7 +58,5 @@
     "mocha": "3.5.3",
     "rimraf": "2.6.2"
   },
-  "dependencies": {
-    "babel-runtime": "^6.23.0"
-  }
+  "dependencies": {}
 }

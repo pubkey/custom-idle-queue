@@ -222,7 +222,7 @@ IdleQueue.prototype = {
                  * wait 1 tick here
                  * because many functions do IO->CPU->IO
                  * which means the queue is empty for a short time
-                 * but the db is not idle
+                 * but the ressource is not idle
                  */
                 return util.nextTick()
                     .then(() => {
@@ -232,7 +232,7 @@ IdleQueue.prototype = {
                             return;
                         }
 
-                        // db is idle
+                        // ressource is idle
                         this._resolveOneIdleCall();
                         this._tryIdleCallRunning = false;
                     });

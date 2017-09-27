@@ -5,6 +5,7 @@ interface Options {
 declare class IdleQueue {
     constructor(parallels?: number);
 
+    isIdle(): boolean;
     lock(): Function;
 
     wrapCall(fun: Function): Promise<any>;

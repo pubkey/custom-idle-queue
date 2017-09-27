@@ -239,7 +239,7 @@ IdleQueue.prototype = {
              * wait 1 tick here
              * because many functions do IO->CPU->IO
              * which means the queue is empty for a short time
-             * but the db is not idle
+             * but the ressource is not idle
              */
             return util.nextTick().then(function () {
                 // check if queue still empty
@@ -248,7 +248,7 @@ IdleQueue.prototype = {
                     return;
                 }
 
-                // db is idle
+                // ressource is idle
                 _this3._resolveOneIdleCall();
                 _this3._tryIdleCallRunning = false;
             });
