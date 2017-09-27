@@ -82,7 +82,7 @@ This module can be used on any limited ressource like
 
 - **IdleQueue cannot predict the future**
 
-When you start a `backgroundTask` first and the the `importantTask` afterwards, the `backgroundTask` will slow down the `importantTask` because it is already running. To prevent this, you should use `requestIdlePromise` as granular as possible. The backgroundTask-function from the example would be better when it awaits the idle-state before each usage of the limited ressource. This will ensure that the `backgroundTask` will be paused until the `importantTask` has finished.
+When you start a `backgroundTask` first and the `importantTask` afterwards, the `backgroundTask` will slow down the `importantTask` because it is already running. To prevent this, you should use `requestIdlePromise` as granular as possible. The backgroundTask-function from the example would be better when it awaits the idle-state before each usage of the limited ressource. This will ensure that the `backgroundTask` will be paused until the `importantTask` has finished.
 
 ```js
 // this is the background task
@@ -103,12 +103,12 @@ const backgroundTask = async function cleanUpOldClicks() {
 
 - **You cannot optimize CPU-only ressources**
 
-Because javascript runs in a single process only, it doesn't make sense to define CPU as limited ressource. For example if you have a CPU-only-Function like `calculatePrimeNumber`, you should not limit the acess to the function with an idle-queue because at the time you call `idleQueue.lock()` or `idleQueue..wrapCall()` the process will instantly run `calculatePrimeNumber` before it even can change it's state.
+Because javascript runs in a single process, it doesn't make sense to define CPU as limited ressource. For example if you have a CPU-only-Function like `calculatePrimeNumber`, you should not limit the access to the function with an idle-queue because at the time you call `idleQueue.lock()` or `idleQueue.wrapCall()`, the process will instantly run `calculatePrimeNumber` before it even can change the idle-queue state.
 
 
 
 ## Browser-Support
 
-This module is using the [Promise](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Promise) and the [Map](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Map)-Object. If your runtime does not support them, you have to add them via polyfills.
+This module is using the [Promise-](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Promise) and the [Map](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Map)-Object. If your runtime does not support them, you have to add them via polyfills.
 
 ## [Read the full documentation here](https://github.com/pubkey/custom-idle-queue/blob/master/docs.md) 
