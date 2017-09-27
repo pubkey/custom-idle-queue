@@ -1,4 +1,4 @@
-# custom-idle-queue
+# Custom Idle Queue
 
 This is a npm-module that lets you optimize the performance of important tasks by delaying background-tasks. It works a bit like [requestIdleCallback](https://developer.mozilla.org/de/docs/Web/API/Window/requestIdleCallback) but instead of fetching idle-time of the CPU, you can use this for any given limited ressource.
 
@@ -66,6 +66,8 @@ document
         labelDomElement.innerHTML = newNr.toString();
     });
 
+// You can find the full documentation here https://github.com/pubkey/custom-idle-queue/blob/master/docs.md
+
 ```
 
 ## Use cases
@@ -108,3 +110,5 @@ Because javascript runs in a single process only, it doesn't make sense to defin
 ## Browser-Support
 
 This module is using the [Promise](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Promise) and the [Map](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Map)-Object. If your runtime does not support them, you have to add them via polyfills.
+
+## [Read the full documentation here](https://github.com/pubkey/custom-idle-queue/blob/master/docs.md)

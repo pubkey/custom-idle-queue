@@ -51,6 +51,9 @@ var IdleQueue = function IdleQueue() {
 // STATICS
 
 IdleQueue.prototype = {
+    isIdle: function isIdle() {
+        return this._queueCounter < this._parallels;
+    },
     _newHandleNumber: function _newHandleNumber() {
         this._lastHandleNumber++;
         return this._lastHandleNumber;
@@ -227,7 +230,7 @@ IdleQueue.prototype = {
         return util.nextTick().then(function () {
 
             // check if queue empty
-            if (_this3._queueCounter >= _this3._parallels) {
+            if (!_this3.isIdle()) {
                 _this3._tryIdleCallRunning = false;
                 return;
             };
@@ -240,7 +243,7 @@ IdleQueue.prototype = {
              */
             return util.nextTick().then(function () {
                 // check if queue still empty
-                if (_this3._queueCounter >= _this3._parallels) {
+                if (!_this3.isIdle()) {
                     _this3._tryIdleCallRunning = false;
                     return;
                 }
