@@ -3,4 +3,5 @@ log.txt
 test/
 .babelrc
 .eslint.json
+.travis.yml
 package-lock.json

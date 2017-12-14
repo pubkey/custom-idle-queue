@@ -6,10 +6,6 @@
  * requestIdlePromise for semi-important actions
  */
 
-var util = require('./util');
-var PROMISE_RESOLVE_MAP = new Map();
-var PROMISE_TIMEOUT_MAP = new Map();
-
 /**
  * Creates a new Idle-Queue
  * @constructor
@@ -31,9 +27,9 @@ var IdleQueue = function IdleQueue() {
     /**
      * contains all promises that where added via requestIdlePromise()
      * and not have been resolved
-     * @type {Array<Promise>} _idleCalls with oldest promise last
+     * @type {Set<Promise>} _idleCalls with oldest promise first
      */
-    this._idleCalls = [];
+    this._idleCalls = new Set();
 
     this._lastHandleNumber = 0;
 
@@ -47,8 +43,6 @@ var IdleQueue = function IdleQueue() {
     this._handlePromiseMap = new Map();
     this._promiseHandleMap = new Map();
 };
-
-// STATICS
 
 IdleQueue.prototype = {
     isIdle: function isIdle() {
@@ -66,15 +60,9 @@ IdleQueue.prototype = {
      * @return {function} unlock function than must be called afterwards
      */
     lock: function lock() {
-        var _this = this;
-
         this._queueCounter++;
-        var unlock = function () {
-            return _this._unLock();
-        }.bind(this);
-        return unlock;
     },
-    _unLock: function _unLock() {
+    unlock: function unlock() {
         this._queueCounter--;
         this._tryIdleCall();
     },
@@ -86,25 +74,34 @@ IdleQueue.prototype = {
      * @return {Promise<any>}
      */
     wrapCall: function wrapCall(fun) {
-        var unlock = this.lock();
+        var _this = this;
+
+        this.lock();
 
         var maybePromise = void 0;
         try {
             maybePromise = fun();
         } catch (err) {
-            unlock();
+            this.unlock();
             throw err;
         }
 
-        return Promise.resolve(maybePromise).then(function (ret) {
-            // sucessfull -> unlock before return
-            unlock();
-            return ret;
-        })['catch'](function (err) {
-            // not sucessfull -> unlock before throwing
-            unlock();
-            throw err;
-        });
+        if (!maybePromise.then || typeof maybePromise.then !== 'function') {
+            // no promise
+            this.unlock();
+            return maybePromise;
+        } else {
+            // promise
+            return maybePromise.then(function (ret) {
+                // sucessfull -> unlock before return
+                _this.unlock();
+                return ret;
+            })['catch'](function (err) {
+                // not sucessfull -> unlock before throwing
+                _this.unlock();
+                throw err;
+            });
+        }
     },
 
 
@@ -126,17 +123,18 @@ IdleQueue.prototype = {
             _this2._removeIdlePromise(prom);
             resolve();
         };
-        PROMISE_RESOLVE_MAP.set(prom, resolveFromOutside);
+
+        prom._resolveFromOutside = resolveFromOutside;
 
         if (options.timeout) {
             // if timeout has passed, resolve promise even if not idle
             var timeoutObj = setTimeout(function () {
-                PROMISE_RESOLVE_MAP.get(prom)();
+                prom._resolveFromOutside();
             }, options.timeout);
-            PROMISE_TIMEOUT_MAP.set(prom, timeoutObj);
+            prom._timeoutObj = timeoutObj;
         }
 
-        this._idleCalls.unshift(prom);
+        this._idleCalls.add(prom);
 
         this._tryIdleCall();
         return prom;
@@ -149,34 +147,29 @@ IdleQueue.prototype = {
      */
     cancelIdlePromise: function cancelIdlePromise(promise) {
         this._removeIdlePromise(promise);
-        this._removeIdlePromise(promise);
     },
 
 
     /**
-     * removes the promis from the queue and maps and also its corresponding handle-number
+     * removes the promise from the queue and maps and also its corresponding handle-number
      * @param  {Promise} promise from requestIdlePromise()
      * @return {void}
      */
     _removeIdlePromise: function _removeIdlePromise(promise) {
-        // remove resolve-function
-        PROMISE_RESOLVE_MAP['delete'](promise);
+        if (!promise) return;
 
         // remove timeout if exists
-        var timeoutObj = PROMISE_TIMEOUT_MAP.get(promise);
-        if (timeoutObj) {
-            clearTimeout(timeoutObj);
-            PROMISE_TIMEOUT_MAP['delete'](promise);
-        }
+        if (promise._timeoutObj) clearTimeout(promise._timeoutObj);
 
         // remove handle-nr if exists
-        var handle = this._promiseHandleMap.get(promise);
-        this._handlePromiseMap['delete'](handle);
-        this._promiseHandleMap['delete'](promise);
+        if (this._promiseHandleMap.has(promise)) {
+            var handle = this._promiseHandleMap.get(promise);
+            this._handlePromiseMap['delete'](handle);
+            this._promiseHandleMap['delete'](promise);
+        }
 
         // remove from queue
-        var index = this._idleCalls.indexOf(promise);
-        this._idleCalls.splice(index, 1);
+        this._idleCalls['delete'](promise);
     },
 
 
@@ -223,12 +216,11 @@ IdleQueue.prototype = {
         var _this3 = this;
 
         // ensure this does not run in parallel
-        if (this._tryIdleCallRunning || this._idleCalls.length === 0) return;
+        if (this._tryIdleCallRunning || this._idleCalls.size === 0) return;
         this._tryIdleCallRunning = true;
 
         // w8 one tick
-        return util.nextTick().then(function () {
-
+        setTimeout(function () {
             // check if queue empty
             if (!_this3.isIdle()) {
                 _this3._tryIdleCallRunning = false;
@@ -241,7 +233,7 @@ IdleQueue.prototype = {
              * which means the queue is empty for a short time
              * but the ressource is not idle
              */
-            return util.nextTick().then(function () {
+            setTimeout(function () {
                 // check if queue still empty
                 if (!_this3.isIdle()) {
                     _this3._tryIdleCallRunning = false;
@@ -251,8 +243,8 @@ IdleQueue.prototype = {
                 // ressource is idle
                 _this3._resolveOneIdleCall();
                 _this3._tryIdleCallRunning = false;
-            });
-        });
+            }, 0);
+        }, 0);
     },
 
 
@@ -263,16 +255,17 @@ IdleQueue.prototype = {
     _resolveOneIdleCall: function _resolveOneIdleCall() {
         var _this4 = this;
 
-        if (this._idleCalls.length === 0) return;
+        if (this._idleCalls.size === 0) return;
 
-        var oldestPromise = this._idleCalls[this._idleCalls.length - 1];
-        var resolveFun = PROMISE_RESOLVE_MAP.get(oldestPromise);
-        resolveFun();
+        var iterator = this._idleCalls.values();
+        var oldestPromise = iterator.next().value;
+
+        oldestPromise._resolveFromOutside();
 
         // try to call the next tick
-        return util.nextTick().then(function () {
+        setTimeout(function () {
             return _this4._tryIdleCall();
-        });
+        }, 0);
     },
 
 
@@ -289,7 +282,7 @@ IdleQueue.prototype = {
         });
 
         this._queueCounter = 0;
-        this._idleCalls = [];
+        this._idleCalls.clear();
         this._handlePromiseMap = new Map();
         this._promiseHandleMap = new Map();
     }
