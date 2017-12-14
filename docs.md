@@ -19,17 +19,17 @@ myQueue.isIdle();
 
 ## lock()
 
-Increases the lock-counter of the idle-queue and returns a unlock-`function` which must be used to decrease the lock-counter. Each time the lock-counter is `0`, the queue is in idle-state.
+Increases the lock-counter of the idle-queue. Each time the lock-counter is `0`, the queue is in idle-state.
 
 ```javascript
 
 const unlock = myQueue.lock();
 try{
     const result = await callToLimitedRessource();
-    unlock();
+    myQueue.unlock();
 }catch(err){
     // do not forget to unlock not mather what happens
-    unlock();
+    myQueue.unlock();
     throw err;
 }
 ```

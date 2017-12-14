@@ -6,7 +6,8 @@ declare class IdleQueue {
     constructor(parallels?: number);
 
     isIdle(): boolean;
-    lock(): Function;
+    lock(): void;
+    unlock(): void;
 
     wrapCall(fun: Function): Promise<any>;
 

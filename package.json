@@ -8,17 +8,18 @@
     "performance",
     "optimisation"
   ],
-  "main": "./dist/index.js",
+  "main": "./dist/idle-queue.js",
   "types": "./src/index.d.ts",
   "scripts": {
-    "test": "npm run build && mocha -b",
+    "test": "npm run build && mocha -b --exit test/unit",
+    "performance": "npm run build && node test/performance.test.js",
     "lint": "eslint src test",
     "clear": "rimraf -rf ./dist",
     "build:es6": "rimraf -rf dist/es && cross-env NODE_ENV=es6 babel src --out-dir dist/es",
     "build:es5": "cross-env NODE_ENV=es5 node node_modules/babel-cli/bin/babel.js src --out-dir dist/",
     "build": "npm run clear && npm run build:es5"
   },
-  "homepage": "https://github.com/pubkey/custom-idle-queue/blob/master/docs.md",
+  "homepage": "https://github.com/pubkey/custom-idle-queue#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pubkey/custom-idle-queue.git"
@@ -28,13 +29,12 @@
   "bugs": {
     "url": "https://github.com/pubkey/custom-idle-queue/issues"
   },
-  "homepage": "https://github.com/pubkey/custom-idle-queue#readme",
   "devDependencies": {
     "assert": "1.4.1",
-    "async-test-util": "1.2.0",
+    "async-test-util": "1.2.1",
     "babel-cli": "6.26.0",
     "babel-core": "6.26.0",
-    "babel-eslint": "8.0.1",
+    "babel-eslint": "8.0.3",
     "babel-loader": "7.1.2",
     "babel-plugin-async-to-promises": "1.0.5",
     "babel-plugin-transform-async-to-generator": "6.24.1",
@@ -53,9 +53,9 @@
     "babel-preset-es2016": "6.24.1",
     "babel-preset-es2017": "6.24.1",
     "babel-preset-latest": "6.24.1",
-    "cross-env": "5.0.5",
-    "eslint": "4.7.2",
-    "mocha": "3.5.3",
+    "cross-env": "5.1.1",
+    "eslint": "4.13.1",
+    "mocha": "4.0.1",
     "rimraf": "2.6.2"
   },
   "dependencies": {}

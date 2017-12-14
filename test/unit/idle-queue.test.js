@@ -1,6 +1,6 @@
 const assert = require('assert');
 const AsyncTestUtil = require('async-test-util');
-const IdleQueue = require('../');
+const IdleQueue = require('../../');
 
 const getWaitFunction = (time = 20) => () => AsyncTestUtil.wait(time);
 
@@ -16,12 +16,10 @@ describe('idle-queue.test.js', () => {
     });
     describe('instance', () => {
         describe('.lock()', () => {
-            it('should get a unlock-function while increasing the _queueCounter', () => {
+            it('should increae the _queueCounter', () => {
                 const queue = new IdleQueue();
-                const unlock1 = queue.lock();
-                const unlock2 = queue.lock();
-                assert.equal(typeof unlock1, 'function');
-                assert.equal(typeof unlock2, 'function');
+                queue.lock();
+                queue.lock();
                 assert.equal(queue._queueCounter, 2);
                 queue.clear();
             });
@@ -35,35 +33,17 @@ describe('idle-queue.test.js', () => {
             });
         });
         describe('.unlock()', () => {
-            it('should not crash when calling unlock', async() => {
+            it('should descrease the queueCounter', () => {
                 const queue = new IdleQueue();
-                const unlock = queue.lock();
-                unlock();
-                queue.clear();
-            });
-            it('should have an empty queue when unlocked', () => {
-                const queue = new IdleQueue();
-                const unlocks = new Array(10)
+                new Array(10)
                     .fill(0)
                     .map(() => queue.lock());
                 assert.equal(queue._queueCounter, 10);
-                unlocks.forEach(unlock => unlock());
-                assert.equal(queue._queueCounter, 0);
-                queue.clear();
-            });
-            it('should not contain the single unlocked nr', () => {
-                const queue = new IdleQueue();
-                new Array(10)
-                    .fill(0)
-                    .map(() => queue.lock());
-                const unlock = queue.lock();
-                new Array(10)
-                    .fill(0)
-                    .map(() => queue.lock());
 
-                assert.equal(queue._queueCounter, 21);
-                unlock();
-                assert.equal(queue._queueCounter, 20);
+                new Array(10)
+                    .fill(0)
+                    .map(() => queue.unlock());
+                assert.equal(queue._queueCounter, 0);
                 queue.clear();
             });
         });
@@ -338,9 +318,10 @@ describe('idle-queue.test.js', () => {
 
                 await AsyncTestUtil.wait(50);
 
-                assert.deepEqual(queue._idleCalls.length, 0);
+                assert.deepEqual(queue._idleCalls.size, 0);
                 assert.deepEqual(queue._handlePromiseMap.size, 0);
                 assert.deepEqual(queue._promiseHandleMap.size, 0);
+
                 queue.clear();
             });
         });
