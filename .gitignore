@@ -4,3 +4,5 @@ test_tmp/
 log.txt
 package-lock.json
 core
+isolate-*
+processed.txt

@@ -12,7 +12,7 @@
   "types": "./src/index.d.ts",
   "scripts": {
     "test": "npm run build && mocha -b --exit test/unit",
-    "performance": "npm run build && node test/performance.test.js",
+    "performance": "npm run build && node --prof test/performance.test.js && node scripts/profile.js",
     "lint": "eslint src test",
     "clear": "rimraf -rf ./dist",
     "build:es6": "rimraf -rf dist/es && cross-env NODE_ENV=es6 babel src --out-dir dist/es",
@@ -54,9 +54,12 @@
     "babel-preset-es2017": "6.24.1",
     "babel-preset-latest": "6.24.1",
     "cross-env": "5.1.1",
+    "delete": "^1.1.0",
     "eslint": "4.13.1",
     "mocha": "4.0.1",
-    "rimraf": "2.6.2"
+    "rimraf": "2.6.2",
+    "shelljs": "^0.8.1",
+    "walk-sync": "^0.3.2"
   },
   "dependencies": {}
 }
