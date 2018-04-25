@@ -3,7 +3,7 @@ os:
   - linux
   - osx
 node_js:
-  - "7"
+  - "10.0.0"
 script:
 - npm install --silent
 - npm run lint
