@@ -53,6 +53,7 @@
     "babel-preset-es2016": "6.24.1",
     "babel-preset-es2017": "6.24.1",
     "babel-preset-latest": "6.24.1",
+    "node": "10.0.0",
     "cross-env": "5.1.4",
     "delete": "^1.1.0",
     "eslint": "4.19.1",

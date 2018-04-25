@@ -33,7 +33,11 @@ const run = async () => {
         getWaitPromise
     );
 
-    new Array(100000).fill(0).forEach(() => wrappedCall());
+
+    await queue.requestIdlePromise();
+    for (let i = 0; i < 100000; i++)
+        wrappedCall();
+
     console.log('# run wrapped calls');
     await queue.requestIdlePromise();
     assert.equal(count, 100000);
