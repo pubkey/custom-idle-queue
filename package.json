@@ -54,16 +54,17 @@
     "babel-preset-es2016": "6.24.1",
     "babel-preset-es2017": "6.24.1",
     "babel-preset-latest": "6.24.1",
-    "browserify": "^16.2.2",
+    "browserify": "16.2.2",
     "cross-env": "5.1.4",
-    "delete": "^1.1.0",
+    "delete": "1.1.0",
     "eslint": "4.19.1",
+    "gzip-size-cli": "2.1.0",
     "mocha": "5.1.1",
     "node": "10.0.0",
     "rimraf": "2.6.2",
-    "shelljs": "^0.8.1",
-    "uglify-js": "^3.4.1",
-    "walk-sync": "^0.3.2"
+    "shelljs": "0.8.1",
+    "uglify-js": "3.4.1",
+    "walk-sync": "0.3.2"
   },
   "dependencies": {}
 }
