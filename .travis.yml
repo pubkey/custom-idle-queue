@@ -10,3 +10,4 @@ script:
 - npm run build
 - npm test
 - npm run performance
+- npm run test:size

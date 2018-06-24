@@ -5,3 +5,4 @@ test/
 .eslint.json
 .travis.yml
 package-lock.json
+tmp/

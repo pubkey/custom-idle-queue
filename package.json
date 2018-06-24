@@ -12,6 +12,7 @@
   "types": "./src/index.d.ts",
   "scripts": {
     "test": "npm run build && mocha -b --exit test/unit",
+    "test:size": "npm run build && rimraf tmp/browserify.js && mkdir -p tmp/ && browserify --no-builtins dist/browserify.index.js > tmp/browserify.js && uglifyjs --compress --mangle --output tmp/browserify.min.js -- tmp/browserify.js && echo \"Build-Size (minified+gzip):\" && gzip-size --raw tmp/browserify.min.js",
     "performance": "npm run build && node --prof test/performance.test.js && node scripts/profile.js",
     "lint": "eslint src test",
     "clear": "rimraf -rf ./dist",
@@ -53,13 +54,15 @@
     "babel-preset-es2016": "6.24.1",
     "babel-preset-es2017": "6.24.1",
     "babel-preset-latest": "6.24.1",
-    "node": "10.0.0",
+    "browserify": "^16.2.2",
     "cross-env": "5.1.4",
     "delete": "^1.1.0",
     "eslint": "4.19.1",
     "mocha": "5.1.1",
+    "node": "10.0.0",
     "rimraf": "2.6.2",
     "shelljs": "^0.8.1",
+    "uglify-js": "^3.4.1",
     "walk-sync": "^0.3.2"
   },
   "dependencies": {}

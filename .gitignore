@@ -6,3 +6,4 @@ package-lock.json
 core
 isolate-*
 processed.txt
+tmp/
