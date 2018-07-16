@@ -9,7 +9,8 @@ const IdleQueue = require('../');
 
 const benchmark = {
     wrapCalls: {},
-    deepIdle: {}
+    deepIdle: {},
+    waitWrapped: {}
 };
 
 const elapsedTime = before => {
@@ -84,11 +85,10 @@ describe('performance.test.js', () => {
             () => getWaitPromise(300).then(() => startTime = AsyncTestUtil.performanceNow())
         );
 
-
         return new Promise(res => {
             let amount = 1000;
             for (let i = 0; i < amount; i++) {
-                queue.requestIdlePromise().then(() => {
+                queue.requestIdlePromise().then(function () {
                     amount--;
                     if (amount === 0) done();
                 });
@@ -99,9 +99,42 @@ describe('performance.test.js', () => {
                 res();
             }
         });
-
-
     });
+
+    /**
+     * await idleness
+     * then run a wrapped call
+     */
+    it('waitWrapped', async () => {
+        const queue = new IdleQueue(1);
+        const startTime = AsyncTestUtil.performanceNow();
+        let amount = 1000;
+
+        return new Promise(res => {
+            for (let i = 0; i < amount; i++) {
+                (async () => {
+                    await queue.requestIdlePromise();
+                    queue.wrapCall(
+                        async () => {
+                            await getWaitPromise(0);
+                            amount--;
+                            if (amount === 0) done();
+                        }
+                    );
+                })();
+            }
+
+            function done() {
+                queue.requestIdlePromise().then(() => {
+                    assert.equal(amount, 0);
+                    const elapsed = elapsedTime(startTime);
+                    benchmark.waitWrapped = elapsed;
+                    res();
+                });
+            }
+        });
+    });
+
 
     it('show result', () => {
         console.log('benchmark result:');

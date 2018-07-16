@@ -14,7 +14,7 @@
     "test": "npm run build && mocha -b --exit test/unit",
     "test:size": "npm run build && rimraf tmp/browserify.js && mkdir -p tmp/ && browserify --no-builtins dist/browserify.index.js > tmp/browserify.js && uglifyjs --compress --mangle --output tmp/browserify.min.js -- tmp/browserify.js && echo \"Build-Size (minified+gzip):\" && gzip-size --raw tmp/browserify.min.js",
     "performance": "npm run build && mocha test/performance.test.js -b --timeout 24000 --exit",
-    "profile": "node --prof test/performance.test.js && node scripts/profile.js",
+    "profile": "mocha --prof  test/performance.test.js -b --timeout 24000 --exit && node scripts/profile.js",
     "lint": "eslint src test",
     "clear": "rimraf -rf ./dist",
     "build:es6": "rimraf -rf dist/es && cross-env NODE_ENV=es6 babel src --out-dir dist/es",

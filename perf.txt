@@ -1,2 +1,9 @@
 ==== 16.July.2018
-BEFORE:
+BEFORE: {
+  "wrapCalls": 4059.4829759988934,
+  "deepIdle": 3530.9873249996454,
+  "waitWrapped": 3548.58826199919
+}
+
+
+AFTER:
