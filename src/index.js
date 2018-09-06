@@ -1,12 +1,4 @@
 /**
- * this queue tracks the currently running database-interactions
- * so we know when the database is in idle-state and can call
- * requestIdlePromise for semi-important actions
- */
-
-'use strict';
-
-/**
  * Creates a new Idle-Queue
  * @constructor
  * @param {number} [parallels=1] amount of parrallel runs of the limited-ressource
@@ -205,7 +197,7 @@ function _resolveOneIdleCall(idleQueue) {
 
     // try to call the next tick
     setTimeout(() => _tryIdleCall(idleQueue), 0);
-};
+}
 
 
 /**
@@ -229,7 +221,7 @@ function _removeIdlePromise(idleQueue, promise) {
 
     // remove from queue
     idleQueue._iC.delete(promise);
-};
+}
 
 /**
  * resolves the last entry of this._iC
@@ -248,7 +240,7 @@ function _tryIdleCall(idleQueue) {
         if (!idleQueue.isIdle()) {
             idleQueue._tryIR = false;
             return;
-        };
+        }
 
         /**
          * wait 1 tick here
@@ -268,6 +260,6 @@ function _tryIdleCall(idleQueue) {
             idleQueue._tryIR = false;
         }, 0);
     }, 0);
-};
+}
 
 export default IdleQueue;

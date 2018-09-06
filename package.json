@@ -14,7 +14,7 @@
   "types": "./src/index.d.ts",
   "scripts": {
     "test": "npm run build && mocha -b --exit test/unit",
-    "test:size": "npm run build && rimraf tmp/browserify.js && mkdir -p tmp/ && browserify --no-builtins dist/browserify.index.js > tmp/browserify.js && uglifyjs --compress --mangle --output tmp/browserify.min.js -- tmp/browserify.js && echo \"Build-Size (minified+gzip):\" && gzip-size --raw tmp/browserify.min.js",
+    "test:size": "npm run build && rimraf tmp/browserify.js && mkdir -p tmp/ && browserify --no-builtins dist/lib/browserify.index.js > tmp/browserify.js && uglifyjs --compress --mangle --output tmp/browserify.min.js -- tmp/browserify.js && echo \"Build-Size (minified+gzip):\" && gzip-size --raw tmp/browserify.min.js",
     "performance": "npm run build && mocha test/performance.test.js -b --timeout 24000 --exit",
     "profile": "mocha --prof  test/performance.test.js -b --timeout 24000 --exit && node scripts/profile.js",
     "lint": "eslint src test",
@@ -50,7 +50,7 @@
     "concurrently": "^4.0.1",
     "cross-env": "5.2.0",
     "delete": "1.1.0",
-    "eslint": "4.19.1",
+    "eslint": "5.5.0",
     "gzip-size-cli": "3.0.0",
     "mocha": "5.2.0",
     "node": "10.9.0",

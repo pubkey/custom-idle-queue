@@ -1,15 +1,8 @@
 /**
- * this queue tracks the currently running database-interactions
- * so we know when the database is in idle-state and can call
- * requestIdlePromise for semi-important actions
- */
-'use strict';
-/**
  * Creates a new Idle-Queue
  * @constructor
  * @param {number} [parallels=1] amount of parrallel runs of the limited-ressource
  */
-
 var IdleQueue = function IdleQueue() {
   var parallels = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
   this._parallels = parallels || 1;
@@ -224,13 +217,12 @@ function _resolveOneIdleCall(idleQueue) {
     return _tryIdleCall(idleQueue);
   }, 0);
 }
-
-;
 /**
  * removes the promise from the queue and maps and also its corresponding handle-number
  * @param  {Promise} promise from requestIdlePromise()
  * @return {void}
  */
+
 
 function _removeIdlePromise(idleQueue, promise) {
   if (!promise) return; // remove timeout if exists
@@ -248,13 +240,12 @@ function _removeIdlePromise(idleQueue, promise) {
 
   idleQueue._iC["delete"](promise);
 }
-
-;
 /**
  * resolves the last entry of this._iC
  * but only if the queue is empty
  * @return {Promise}
  */
+
 
 function _tryIdleCall(idleQueue) {
   // ensure this does not run in parallel
@@ -267,14 +258,13 @@ function _tryIdleCall(idleQueue) {
       idleQueue._tryIR = false;
       return;
     }
-
-    ;
     /**
      * wait 1 tick here
      * because many functions do IO->CPU->IO
      * which means the queue is empty for a short time
      * but the ressource is not idle
      */
+
 
     setTimeout(function () {
       // check if queue still empty
@@ -291,5 +281,4 @@ function _tryIdleCall(idleQueue) {
   }, 0);
 }
 
-;
 export default IdleQueue;

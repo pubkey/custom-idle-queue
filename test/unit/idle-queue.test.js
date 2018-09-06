@@ -161,7 +161,7 @@ describe('idle-queue.test.js', () => {
             it('should not crash when called twice on same promise', async() => {
                 const queue = new IdleQueue();
                 const promise = queue.requestIdlePromise();
-                promise.then(() => resolved = true);
+                promise.then(() => {});
                 queue.cancelIdlePromise(promise);
                 queue.cancelIdlePromise(promise);
                 queue.clear();
