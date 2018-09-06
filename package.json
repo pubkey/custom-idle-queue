@@ -1,6 +1,6 @@
 {
   "name": "custom-idle-queue",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Optimize the speed of important tasks on limited ressources",
   "keywords": [
     "requestIdleCallback",
@@ -8,7 +8,9 @@
     "performance",
     "optimisation"
   ],
-  "main": "./dist/idle-queue.js",
+  "main": "./dist/index.es5.js",
+  "jsnext:main": "./dist/index.js",
+  "module": "./dist/index.js",
   "types": "./src/index.d.ts",
   "scripts": {
     "test": "npm run build && mocha -b --exit test/unit",

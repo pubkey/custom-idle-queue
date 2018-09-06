@@ -270,5 +270,4 @@ function _tryIdleCall(idleQueue) {
     }, 0);
 };
 
-
-module.exports = IdleQueue;
+export default IdleQueue;

@@ -12,6 +12,9 @@
  * @param {number} [parallels=1] amount of parrallel runs of the limited-ressource
  */
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 var IdleQueue = function IdleQueue() {
     var parallels = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
 
@@ -285,4 +288,4 @@ function _tryIdleCall(idleQueue) {
     }, 0);
 };
 
-module.exports = IdleQueue;
+exports['default'] = IdleQueue;
