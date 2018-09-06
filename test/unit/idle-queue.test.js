@@ -16,11 +16,11 @@ describe('idle-queue.test.js', () => {
     });
     describe('instance', () => {
         describe('.lock()', () => {
-            it('should increae the _queueCounter', () => {
+            it('should increae the queue counter', () => {
                 const queue = new IdleQueue();
                 queue.lock();
                 queue.lock();
-                assert.equal(queue._queueCounter, 2);
+                assert.equal(queue._qC, 2);
                 queue.clear();
             });
             it('should have the correct lock-amount queue', () => {
@@ -28,7 +28,7 @@ describe('idle-queue.test.js', () => {
                 new Array(50)
                     .fill(0)
                     .map(() => queue.lock());
-                assert.equal(queue._queueCounter, 50);
+                assert.equal(queue._qC, 50);
                 queue.clear();
             });
         });
@@ -38,12 +38,12 @@ describe('idle-queue.test.js', () => {
                 new Array(10)
                     .fill(0)
                     .map(() => queue.lock());
-                assert.equal(queue._queueCounter, 10);
+                assert.equal(queue._qC, 10);
 
                 new Array(10)
                     .fill(0)
                     .map(() => queue.unlock());
-                assert.equal(queue._queueCounter, 0);
+                assert.equal(queue._qC, 0);
                 queue.clear();
             });
         });
@@ -77,10 +77,10 @@ describe('idle-queue.test.js', () => {
                         return 42;
                     }
                 );
-                assert.equal(queue._queueCounter, 1);
+                assert.equal(queue._qC, 1);
                 const res = await promise;
                 assert.equal(res, 42);
-                assert.equal(queue._queueCounter, 0);
+                assert.equal(queue._qC, 0);
                 queue.clear();
             });
             it('should pass the error if function throws', async() => {
@@ -99,7 +99,7 @@ describe('idle-queue.test.js', () => {
                     assert.ok(err.flag);
                 }
                 assert.ok(thrown);
-                assert.equal(queue._queueCounter, 0);
+                assert.equal(queue._qC, 0);
                 queue.clear();
             });
         });
@@ -318,9 +318,9 @@ describe('idle-queue.test.js', () => {
 
                 await AsyncTestUtil.wait(50);
 
-                assert.deepEqual(queue._idleCalls.size, 0);
-                assert.deepEqual(queue._handlePromiseMap.size, 0);
-                assert.deepEqual(queue._promiseHandleMap.size, 0);
+                assert.deepEqual(queue._iC.size, 0);
+                assert.deepEqual(queue._hPM.size, 0);
+                assert.deepEqual(queue._pHM.size, 0);
 
                 queue.clear();
             });

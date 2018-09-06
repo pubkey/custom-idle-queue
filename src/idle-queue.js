@@ -4,6 +4,8 @@
  * requestIdlePromise for semi-important actions
  */
 
+'use strict';
+
 /**
  * Creates a new Idle-Queue
  * @constructor
@@ -13,42 +15,44 @@ const IdleQueue = function(parallels = 1) {
     this._parallels = parallels || 1;
 
     /**
+     * _queueCounter
      * each lock() increased this number
      * each unlock() decreases this number
-     * If _queueCounter==0, the state is in idle
+     * If _qC==0, the state is in idle
      * @type {Number}
      */
-    this._queueCounter = 0;
+    this._qC = 0;
 
     /**
+     * _idleCalls
      * contains all promises that where added via requestIdlePromise()
      * and not have been resolved
-     * @type {Set<Promise>} _idleCalls with oldest promise first
+     * @type {Set<Promise>} _iC with oldest promise first
      */
-    this._idleCalls = new Set();
-
-    this._lastHandleNumber = 0;
+    this._iC = new Set();
 
     /**
+     * _lastHandleNumber
+     * @type {Number}
+     */
+    this._lHN = 0;
+
+    /**
+     * _handlePromiseMap
      * Contains the handleNumber on the left
      * And the assigned promise on the right.
      * This is stored so you can use cancelIdleCallback(handleNumber)
      * to stop executing the callback.
      * @type {Map<Number><Promise>}
      */
-    this._handlePromiseMap = new Map();
-    this._promiseHandleMap = new Map();
+    this._hPM = new Map();
+    this._pHM = new Map(); // _promiseHandleMap
 };
 
 IdleQueue.prototype = {
 
     isIdle() {
-        return this._queueCounter < this._parallels;
-    },
-
-    _newHandleNumber() {
-        this._lastHandleNumber++;
-        return this._lastHandleNumber;
+        return this._qC < this._parallels;
     },
 
     /**
@@ -57,12 +61,12 @@ IdleQueue.prototype = {
      * @return {function} unlock function than must be called afterwards
      */
     lock() {
-        this._queueCounter++;
+        this._qC++;
     },
 
     unlock() {
-        this._queueCounter--;
-        this._tryIdleCall();
+        this._qC--;
+        _tryIdleCall(this);
     },
 
     /**
@@ -112,22 +116,22 @@ IdleQueue.prototype = {
 
         const prom = new Promise(res => resolve = res);
         const resolveFromOutside = () => {
-            this._removeIdlePromise(prom);
+            _removeIdlePromise(this, prom);
             resolve();
         };
 
-        prom._resolveFromOutside = resolveFromOutside;
+        prom._manRes = resolveFromOutside;
 
         if (options.timeout) { // if timeout has passed, resolve promise even if not idle
             const timeoutObj = setTimeout(() => {
-                prom._resolveFromOutside();
+                prom._manRes();
             }, options.timeout);
             prom._timeoutObj = timeoutObj;
         }
 
-        this._idleCalls.add(prom);
+        this._iC.add(prom);
 
-        this._tryIdleCall();
+        _tryIdleCall(this);
         return prom;
     },
     /**
@@ -136,30 +140,7 @@ IdleQueue.prototype = {
      * @return {void}
      */
     cancelIdlePromise(promise) {
-        this._removeIdlePromise(promise);
-    },
-
-    /**
-     * removes the promise from the queue and maps and also its corresponding handle-number
-     * @param  {Promise} promise from requestIdlePromise()
-     * @return {void}
-     */
-    _removeIdlePromise(promise) {
-        if(!promise) return;
-
-        // remove timeout if exists
-        if (promise._timeoutObj)
-            clearTimeout(promise._timeoutObj);
-
-        // remove handle-nr if exists
-        if (this._promiseHandleMap.has(promise)) {
-            const handle = this._promiseHandleMap.get(promise);
-            this._handlePromiseMap.delete(handle);
-            this._promiseHandleMap.delete(promise);
-        }
-
-        // remove from queue
-        this._idleCalls.delete(promise);
+        _removeIdlePromise(this, promise);
     },
 
     /**
@@ -170,11 +151,11 @@ IdleQueue.prototype = {
      * @return {number} handle which can be used with cancelIdleCallback()
      */
     requestIdleCallback(callback, options) {
-        const handle = this._newHandleNumber();
+        const handle = this._lHN++;
         const promise = this.requestIdlePromise(options);
 
-        this._handlePromiseMap.set(handle, promise);
-        this._promiseHandleMap.set(promise, handle);
+        this._hPM.set(handle, promise);
+        this._pHM.set(promise, handle);
 
         promise.then(() => callback());
 
@@ -188,63 +169,8 @@ IdleQueue.prototype = {
      * @return {void}
      */
     cancelIdleCallback(handle) {
-        const promise = this._handlePromiseMap.get(handle);
+        const promise = this._hPM.get(handle);
         this.cancelIdlePromise(promise);
-    },
-
-    /**
-     * resolves the last entry of this._idleCalls
-     * but only if the queue is empty
-     * @return {Promise}
-     */
-    _tryIdleCall() {
-        // ensure this does not run in parallel
-        if (this._tryIdleCallRunning || this._idleCalls.size === 0)
-            return;
-        this._tryIdleCallRunning = true;
-
-        // w8 one tick
-        setTimeout(() => {
-            // check if queue empty
-            if (!this.isIdle()) {
-                this._tryIdleCallRunning = false;
-                return;
-            };
-
-            /**
-             * wait 1 tick here
-             * because many functions do IO->CPU->IO
-             * which means the queue is empty for a short time
-             * but the ressource is not idle
-             */
-            setTimeout(() => {
-                // check if queue still empty
-                if (!this.isIdle()) {
-                    this._tryIdleCallRunning = false;
-                    return;
-                }
-
-                // ressource is idle
-                this._resolveOneIdleCall();
-                this._tryIdleCallRunning = false;
-            }, 0);
-        }, 0);
-    },
-
-    /**
-     * processes the oldest call of the idleCalls-queue
-     * @return {Promise<void>}
-     */
-    _resolveOneIdleCall() {
-        if (this._idleCalls.size === 0) return;
-
-        const iterator = this._idleCalls.values();
-        const oldestPromise = iterator.next().value;
-
-        oldestPromise._resolveFromOutside();
-
-        // try to call the next tick
-        setTimeout(() => this._tryIdleCall(), 0);
     },
 
     /**
@@ -254,14 +180,95 @@ IdleQueue.prototype = {
     clear() {
 
         // remove all non-cleared
-        this._idleCalls
-            .forEach(promise => this._removeIdlePromise(promise));
+        this._iC
+            .forEach(promise => _removeIdlePromise(this, promise));
 
-        this._queueCounter = 0;
-        this._idleCalls.clear();
-        this._handlePromiseMap = new Map();
-        this._promiseHandleMap = new Map();
+        this._qC = 0;
+        this._iC.clear();
+        this._hPM = new Map();
+        this._pHM = new Map();
     }
 };
+
+
+/**
+ * processes the oldest call of the idleCalls-queue
+ * @return {Promise<void>}
+ */
+function _resolveOneIdleCall(idleQueue) {
+    if (idleQueue._iC.size === 0) return;
+
+    const iterator = idleQueue._iC.values();
+    const oldestPromise = iterator.next().value;
+
+    oldestPromise._manRes();
+
+    // try to call the next tick
+    setTimeout(() => _tryIdleCall(idleQueue), 0);
+};
+
+
+/**
+ * removes the promise from the queue and maps and also its corresponding handle-number
+ * @param  {Promise} promise from requestIdlePromise()
+ * @return {void}
+ */
+function _removeIdlePromise(idleQueue, promise) {
+    if (!promise) return;
+
+    // remove timeout if exists
+    if (promise._timeoutObj)
+        clearTimeout(promise._timeoutObj);
+
+    // remove handle-nr if exists
+    if (idleQueue._pHM.has(promise)) {
+        const handle = idleQueue._pHM.get(promise);
+        idleQueue._hPM.delete(handle);
+        idleQueue._pHM.delete(promise);
+    }
+
+    // remove from queue
+    idleQueue._iC.delete(promise);
+};
+
+/**
+ * resolves the last entry of this._iC
+ * but only if the queue is empty
+ * @return {Promise}
+ */
+function _tryIdleCall(idleQueue) {
+    // ensure this does not run in parallel
+    if (idleQueue._tryIR || idleQueue._iC.size === 0)
+        return;
+    idleQueue._tryIR = true;
+
+    // w8 one tick
+    setTimeout(() => {
+        // check if queue empty
+        if (!idleQueue.isIdle()) {
+            idleQueue._tryIR = false;
+            return;
+        };
+
+        /**
+         * wait 1 tick here
+         * because many functions do IO->CPU->IO
+         * which means the queue is empty for a short time
+         * but the ressource is not idle
+         */
+        setTimeout(() => {
+            // check if queue still empty
+            if (!idleQueue.isIdle()) {
+                idleQueue._tryIR = false;
+                return;
+            }
+
+            // ressource is idle
+            _resolveOneIdleCall(idleQueue);
+            idleQueue._tryIR = false;
+        }, 0);
+    }, 0);
+};
+
 
 module.exports = IdleQueue;

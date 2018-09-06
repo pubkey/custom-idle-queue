@@ -36,8 +36,8 @@
     "async-test-util": "1.6.1",
     "babel-cli": "6.26.0",
     "babel-core": "6.26.3",
-    "babel-eslint": "8.2.6",
-    "babel-loader": "7.1.5",
+    "babel-eslint": "9.0.0",
+    "babel-loader": "8.0.2",
     "babel-plugin-async-to-promises": "1.0.5",
     "babel-plugin-transform-async-to-generator": "6.24.1",
     "babel-plugin-transform-class-properties": "6.24.1",
@@ -61,11 +61,11 @@
     "eslint": "4.19.1",
     "gzip-size-cli": "3.0.0",
     "mocha": "5.2.0",
-    "node": "10.6.0",
+    "node": "10.9.0",
     "rimraf": "2.6.2",
     "shelljs": "0.8.2",
-    "uglify-js": "3.4.4",
-    "walk-sync": "0.3.2"
+    "uglify-js": "3.4.9",
+    "walk-sync": "0.3.3"
   },
   "dependencies": {}
 }
