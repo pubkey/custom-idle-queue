@@ -1,6 +1,6 @@
 {
   "name": "custom-idle-queue",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Optimize the speed of important tasks on limited ressources",
   "keywords": [
     "requestIdleCallback",
@@ -12,6 +12,7 @@
   "jsnext:main": "./dist/es/index.js",
   "module": "./dist/es/index.js",
   "types": "./src/index.d.ts",
+  "sideEffects": false,
   "scripts": {
     "test": "npm run build && mocha -b --exit test/unit",
     "test:size": "npm run build && rimraf tmp/browserify.js && mkdir -p tmp/ && browserify --no-builtins dist/lib/browserify.index.js > tmp/browserify.js && uglifyjs --compress --mangle --output tmp/browserify.min.js -- tmp/browserify.js && echo \"Build-Size (minified+gzip):\" && gzip-size --raw tmp/browserify.min.js",
