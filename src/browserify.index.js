@@ -1,2 +1,2 @@
-const IdleQueue = require('./index.es5.js');
+const IdleQueue = require('./index.es5.js').IdleQueue;
 window['IdleQueue'] = IdleQueue;

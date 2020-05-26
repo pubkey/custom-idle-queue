@@ -1,6 +1,6 @@
 const assert = require('assert');
 const AsyncTestUtil = require('async-test-util');
-const IdleQueue = require('../../');
+const { IdleQueue } = require('../../');
 
 const getWaitFunction = (time = 20) => () => AsyncTestUtil.wait(time);
 
@@ -61,7 +61,7 @@ describe('idle-queue.test.js', () => {
             });
         });
         describe('.wrapCall()', () => {
-            it('should call the given function and returns the value', async() => {
+            it('should call the given function and returns the value', async () => {
                 const queue = new IdleQueue();
                 const res = await queue.wrapCall(
                     () => 21 + 21
@@ -69,10 +69,10 @@ describe('idle-queue.test.js', () => {
                 assert.equal(res, 42);
                 queue.clear();
             });
-            it('should have a lock while running the function', async() => {
+            it('should have a lock while running the function', async () => {
                 const queue = new IdleQueue();
                 const promise = queue.wrapCall(
-                    async() => {
+                    async () => {
                         await AsyncTestUtil.wait(100);
                         return 42;
                     }
@@ -83,12 +83,12 @@ describe('idle-queue.test.js', () => {
                 assert.equal(queue._qC, 0);
                 queue.clear();
             });
-            it('should pass the error if function throws', async() => {
+            it('should pass the error if function throws', async () => {
                 const queue = new IdleQueue();
                 let thrown = false;
                 try {
                     await queue.wrapCall(
-                        async() => {
+                        async () => {
                             const throwMe = new Error('foobar');
                             throwMe.flag = true;
                             throw throwMe;
@@ -104,13 +104,13 @@ describe('idle-queue.test.js', () => {
             });
         });
         describe('.requestIdlePromise()', () => {
-            it('should resolve the promise', async() => {
+            it('should resolve the promise', async () => {
                 const queue = new IdleQueue();
                 await queue.requestIdlePromise();
                 await AsyncTestUtil.wait(10);
                 queue.clear();
             });
-            it('should resolve the oldest first', async() => {
+            it('should resolve the oldest first', async () => {
                 const queue = new IdleQueue();
                 const order = [];
                 queue.requestIdlePromise().then(() => order.push(0));
@@ -121,7 +121,7 @@ describe('idle-queue.test.js', () => {
                 assert.deepEqual(order, [0, 1, 2]);
                 queue.clear();
             });
-            it('should resolve after timeout', async() => {
+            it('should resolve after timeout', async () => {
                 const queue = new IdleQueue();
                 queue.wrapCall(
                     () => AsyncTestUtil.wait(200000)
@@ -133,7 +133,7 @@ describe('idle-queue.test.js', () => {
                 await AsyncTestUtil.waitUntil(() => done === true);
                 queue.clear();
             });
-            it('should not exec twice when timeout set', async() => {
+            it('should not exec twice when timeout set', async () => {
                 const queue = new IdleQueue();
                 queue.wrapCall(
                     () => AsyncTestUtil.wait(20)
@@ -148,7 +148,7 @@ describe('idle-queue.test.js', () => {
             });
         });
         describe('.cancelIdlePromise()', () => {
-            it('should not resolve the promise', async() => {
+            it('should not resolve the promise', async () => {
                 const queue = new IdleQueue();
                 let resolved = false;
                 const promise = queue.requestIdlePromise();
@@ -158,21 +158,21 @@ describe('idle-queue.test.js', () => {
                 assert.equal(resolved, false);
                 queue.clear();
             });
-            it('should not crash when called twice on same promise', async() => {
+            it('should not crash when called twice on same promise', async () => {
                 const queue = new IdleQueue();
                 const promise = queue.requestIdlePromise();
-                promise.then(() => {});
+                promise.then(() => { });
                 queue.cancelIdlePromise(promise);
                 queue.cancelIdlePromise(promise);
                 queue.clear();
             });
-            it('should not crash when giving a random promise', async() => {
+            it('should not crash when giving a random promise', async () => {
                 const queue = new IdleQueue();
                 const randomPromise = AsyncTestUtil.wait(10);
                 queue.cancelIdlePromise(randomPromise);
                 queue.clear();
             });
-            it('should not resolve with timeout', async() => {
+            it('should not resolve with timeout', async () => {
                 const queue = new IdleQueue();
                 let resolved = false;
                 const promise = queue.requestIdlePromise({
@@ -186,7 +186,7 @@ describe('idle-queue.test.js', () => {
             });
         });
         describe('.requestIdleCallback()', () => {
-            it('should run the callback', async() => {
+            it('should run the callback', async () => {
                 const queue = new IdleQueue();
                 let run = false;
                 await queue.requestIdleCallback(() => run = true);
@@ -194,7 +194,7 @@ describe('idle-queue.test.js', () => {
                 assert.ok(run);
                 queue.clear();
             });
-            it('should resolve the oldest first', async() => {
+            it('should resolve the oldest first', async () => {
                 const queue = new IdleQueue();
                 const order = [];
                 queue.requestIdleCallback(() => order.push(0));
@@ -205,7 +205,7 @@ describe('idle-queue.test.js', () => {
                 assert.deepEqual(order, [0, 1, 2]);
                 queue.clear();
             });
-            it('should resolve after timeout', async() => {
+            it('should resolve after timeout', async () => {
                 const queue = new IdleQueue();
                 queue.wrapCall(
                     () => AsyncTestUtil.wait(200000)
@@ -217,7 +217,7 @@ describe('idle-queue.test.js', () => {
                 await AsyncTestUtil.waitUntil(() => done === true);
                 queue.clear();
             });
-            it('should not exec twice when timeout set', async() => {
+            it('should not exec twice when timeout set', async () => {
                 const queue = new IdleQueue();
                 queue.wrapCall(
                     () => AsyncTestUtil.wait(100)
@@ -232,7 +232,7 @@ describe('idle-queue.test.js', () => {
             });
         });
         describe('.cancelIdleCallback()', () => {
-            it('should not resolve the promise', async() => {
+            it('should not resolve the promise', async () => {
                 const queue = new IdleQueue();
                 let resolved = false;
                 const handle = queue.requestIdleCallback(() => resolved = true);
@@ -242,7 +242,7 @@ describe('idle-queue.test.js', () => {
                 assert.equal(resolved, false);
                 queue.clear();
             });
-            it('should not crash when called twice on same handle', async() => {
+            it('should not crash when called twice on same handle', async () => {
                 const queue = new IdleQueue();
                 let resolved = false;
                 const handle = queue.requestIdleCallback(() => resolved = true);
@@ -251,18 +251,18 @@ describe('idle-queue.test.js', () => {
                 assert.equal(resolved, false);
                 queue.clear();
             });
-            it('should not crash when giving a random handle', async() => {
+            it('should not crash when giving a random handle', async () => {
                 const queue = new IdleQueue();
                 queue.cancelIdleCallback(1337);
                 queue.clear();
             });
-            it('should not resolve with timeout', async() => {
+            it('should not resolve with timeout', async () => {
                 const queue = new IdleQueue();
                 let resolved = false;
                 const handle = queue.requestIdleCallback(
                     () => resolved = true, {
-                        timeout: 10
-                    });
+                    timeout: 10
+                });
                 queue.cancelIdleCallback(handle);
                 await AsyncTestUtil.wait(20);
                 assert.ok(!resolved);
@@ -270,7 +270,7 @@ describe('idle-queue.test.js', () => {
             });
         });
         describe('parallels', () => {
-            it('should run 2 in parrallel', async() => {
+            it('should run 2 in parrallel', async () => {
                 const queue = new IdleQueue(2);
                 assert.equal(queue._parallels, 2);
                 let called = 0;
@@ -280,7 +280,7 @@ describe('idle-queue.test.js', () => {
                 assert.equal(called, 1);
                 queue.clear();
             });
-            it('should run 10 in parrallel', async() => {
+            it('should run 10 in parrallel', async () => {
                 const queue = new IdleQueue(10);
                 let called = 0;
                 queue.wrapCall(getWaitFunction(10000));
@@ -295,12 +295,12 @@ describe('idle-queue.test.js', () => {
             });
         });
         describe('other', () => {
-            it('should have empty maps when all is done', async() => {
+            it('should have empty maps when all is done', async () => {
                 const queue = new IdleQueue();
                 let i = 0;
 
                 await queue.wrapCall(
-                    async() => {
+                    async () => {
                         await AsyncTestUtil.wait(100);
                         return 42;
                     }
@@ -308,13 +308,13 @@ describe('idle-queue.test.js', () => {
 
                 const handle = queue.requestIdleCallback(
                     () => i++, {
-                        timeout: 10
-                    });
+                    timeout: 10
+                });
                 queue.cancelIdleCallback(handle);
                 queue.requestIdleCallback(
                     () => i++, {
-                        timeout: 10
-                    });
+                    timeout: 10
+                });
 
                 await AsyncTestUtil.wait(50);
 

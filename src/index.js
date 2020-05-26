@@ -3,7 +3,7 @@
  * @constructor
  * @param {number} [parallels=1] amount of parrallel runs of the limited-ressource
  */
-const IdleQueue = function(parallels = 1) {
+export const IdleQueue = function (parallels = 1) {
     this._parallels = parallels || 1;
 
     /**
@@ -261,5 +261,3 @@ function _tryIdleCall(idleQueue) {
         }, 0);
     }, 0);
 }
-
-export default IdleQueue;

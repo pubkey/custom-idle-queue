@@ -5,7 +5,7 @@
 
 const AsyncTestUtil = require('async-test-util');
 const assert = require('assert');
-const IdleQueue = require('../');
+const { IdleQueue } = require('../');
 
 const benchmark = {
     wrapCalls: {},

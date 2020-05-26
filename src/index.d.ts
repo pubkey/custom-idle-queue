@@ -2,7 +2,7 @@ interface Options {
     timeout?: number
 }
 
-declare class IdleQueue {
+export class IdleQueue {
     constructor(parallels?: number);
 
     isIdle(): boolean;
@@ -19,6 +19,3 @@ declare class IdleQueue {
 
     clear(): void;
 }
-
-
-export default IdleQueue;
