@@ -9,8 +9,11 @@ In this example we define `database-requests` as limited ressource. We create an
 `npm install custom-idle-queue --save`
 
 ```javascript
-// import
-const IdleQueue = require('custom-idle-queue');
+// require
+const { IdleQueue } = require('custom-idle-queue');
+
+// OR import
+import { IdleQueue } from 'custom-idle-queue';
 
 // create a new queue
 const myQueue = new IdleQueue();

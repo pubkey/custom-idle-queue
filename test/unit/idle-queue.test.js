@@ -260,9 +260,11 @@ describe('idle-queue.test.js', () => {
                 const queue = new IdleQueue();
                 let resolved = false;
                 const handle = queue.requestIdleCallback(
-                    () => resolved = true, {
-                    timeout: 10
-                });
+                    () => resolved = true,
+                    {
+                        timeout: 10
+                    }
+                );
                 queue.cancelIdleCallback(handle);
                 await AsyncTestUtil.wait(20);
                 assert.ok(!resolved);
@@ -307,14 +309,18 @@ describe('idle-queue.test.js', () => {
                 );
 
                 const handle = queue.requestIdleCallback(
-                    () => i++, {
-                    timeout: 10
-                });
+                    () => i++,
+                    {
+                        timeout: 10
+                    }
+                );
                 queue.cancelIdleCallback(handle);
                 queue.requestIdleCallback(
-                    () => i++, {
-                    timeout: 10
-                });
+                    () => i++,
+                    {
+                        timeout: 10
+                    }
+                );
 
                 await AsyncTestUtil.wait(50);
 
