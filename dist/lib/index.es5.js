@@ -1,8 +1,6 @@
 "use strict";
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-var _index = _interopRequireDefault(require("./index.js"));
+var _index = require("./index.js");
 
 /**
  * because babel can only export on default-attribute,
@@ -12,4 +10,6 @@ var _index = _interopRequireDefault(require("./index.js"));
  * but
  * var IdleQueue = require('custom-idle-queue');
  */
-module.exports = _index["default"];
+module.exports = {
+  IdleQueue: _index.IdleQueue
+};

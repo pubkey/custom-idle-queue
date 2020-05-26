@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = void 0;
+exports.IdleQueue = void 0;
 
 /**
  * Creates a new Idle-Queue
@@ -49,6 +49,7 @@ var IdleQueue = function IdleQueue() {
   this._pHM = new Map(); // _promiseHandleMap
 };
 
+exports.IdleQueue = IdleQueue;
 IdleQueue.prototype = {
   isIdle: function isIdle() {
     return this._qC < this._parallels;
@@ -287,6 +288,3 @@ function _tryIdleCall(idleQueue) {
     }, 0);
   }, 0);
 }
-
-var _default = IdleQueue;
-exports["default"] = _default;

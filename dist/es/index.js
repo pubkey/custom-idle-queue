@@ -3,7 +3,7 @@
  * @constructor
  * @param {number} [parallels=1] amount of parrallel runs of the limited-ressource
  */
-var IdleQueue = function IdleQueue() {
+export var IdleQueue = function IdleQueue() {
   var parallels = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
   this._parallels = parallels || 1;
   /**
@@ -41,7 +41,6 @@ var IdleQueue = function IdleQueue() {
   this._hPM = new Map();
   this._pHM = new Map(); // _promiseHandleMap
 };
-
 IdleQueue.prototype = {
   isIdle: function isIdle() {
     return this._qC < this._parallels;
@@ -280,5 +279,3 @@ function _tryIdleCall(idleQueue) {
     }, 0);
   }, 0);
 }
-
-export default IdleQueue;

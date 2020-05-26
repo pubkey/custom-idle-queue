@@ -1,6 +1,6 @@
 {
   "name": "custom-idle-queue",
-  "version": "2.1.2",
+  "version": "3.0.0",
   "description": "Optimize the speed of important tasks on limited ressources",
   "keywords": [
     "requestIdleCallback",

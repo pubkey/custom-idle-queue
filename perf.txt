@@ -12,3 +12,4 @@ BEFORE: {
   "deepIdle": 3585.373451001942,
   "waitWrapped": 3451.193564005196
 }
+BUILD SIZE: 984
