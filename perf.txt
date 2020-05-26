@@ -5,5 +5,10 @@ BEFORE: {
   "waitWrapped": 3548.58826199919
 }
 
-
-AFTER:
+==== 26.May.2020
+node 14.0.0
+BEFORE: {
+  "wrapCalls": 4025.453227996826,
+  "deepIdle": 3585.373451001942,
+  "waitWrapped": 3451.193564005196
+}
