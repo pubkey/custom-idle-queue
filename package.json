@@ -34,32 +34,31 @@
     "url": "https://github.com/pubkey/custom-idle-queue/issues"
   },
   "devDependencies": {
-    "@babel/cli": "7.0.0",
-    "@babel/core": "7.0.0",
+    "@babel/cli": "7.8.4",
+    "@babel/core": "7.9.6",
     "@babel/plugin-check-constants": "7.0.0-beta.38",
-    "@babel/plugin-proposal-object-rest-spread": "7.0.0",
-    "@babel/plugin-transform-member-expression-literals": "7.0.0",
-    "@babel/plugin-transform-property-literals": "7.0.0",
-    "@babel/plugin-transform-runtime": "7.0.0",
-    "@babel/polyfill": "7.0.0",
-    "@babel/preset-env": "7.0.0",
-    "@babel/types": "7.0.0",
+    "@babel/plugin-proposal-object-rest-spread": "7.9.6",
+    "@babel/plugin-transform-member-expression-literals": "7.8.3",
+    "@babel/plugin-transform-property-literals": "7.8.3",
+    "@babel/plugin-transform-runtime": "7.9.6",
+    "@babel/polyfill": "7.8.7",
+    "@babel/preset-env": "7.9.6",
+    "@babel/types": "7.9.6",
     "assert": "1.4.1",
-    "async-test-util": "1.6.1",
-    "browserify": "16.2.2",
+    "async-test-util": "1.7.3",
+    "browserify": "16.5.1",
     "concurrently": "^4.0.1",
     "cross-env": "5.2.0",
     "delete": "1.1.0",
     "eslint": "5.5.0",
     "gzip-size-cli": "3.0.0",
     "mocha": "5.2.0",
-    "node": "10.9.0",
     "rimraf": "2.6.2",
     "shelljs": "0.8.2",
-    "uglify-js": "3.4.9",
+    "uglify-js": "3.9.3",
     "walk-sync": "0.3.3"
   },
   "dependencies": {
-    "@babel/runtime": "7.0.0"
+    "@babel/runtime": "7.9.6"
   }
 }
