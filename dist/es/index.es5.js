@@ -6,6 +6,7 @@
  * but
  * var IdleQueue = require('custom-idle-queue');
  */
+
 import { IdleQueue } from './index.js';
 module.exports = {
   IdleQueue: IdleQueue

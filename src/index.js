@@ -63,11 +63,13 @@ IdleQueue.prototype = {
 
     /**
      * wraps a function with lock/unlock and runs it
+     * @performance is really important here because
+     * it is often used in hot paths.
      * @param  {function}  fun
      * @return {Promise<any>}
      */
     wrapCall(fun) {
-        this.lock();
+        this._qC++;
 
         let maybePromise;
         try {
@@ -103,6 +105,7 @@ IdleQueue.prototype = {
      * @return {Promise<void>} promise that resolves when the database is in idle-mode
      */
     requestIdlePromise(options) {
+        console.log('requestIdlePromise() 1');
         options = options || {};
         let resolve;
 
@@ -111,6 +114,7 @@ IdleQueue.prototype = {
             _removeIdlePromise(this, prom);
             resolve();
         };
+        console.log('requestIdlePromise() 2');
 
         prom._manRes = resolveFromOutside;
 
@@ -120,10 +124,13 @@ IdleQueue.prototype = {
             }, options.timeout);
             prom._timeoutObj = timeoutObj;
         }
+        console.log('requestIdlePromise() 3');
 
         this._iC.add(prom);
 
+        console.log('requestIdlePromise() 4');
         _tryIdleCall(this);
+        console.log('requestIdlePromise() 5');
         return prom;
     },
     /**
@@ -229,11 +236,17 @@ function _removeIdlePromise(idleQueue, promise) {
  * @return {Promise}
  */
 function _tryIdleCall(idleQueue) {
+    // console.log('_tryIdleCall:');
+    // console.dir({
+    //     try: idleQueue._tryIR,
+    //     size: idleQueue._iC.size
+    // });
     // ensure this does not run in parallel
     if (idleQueue._tryIR || idleQueue._iC.size === 0)
         return;
     idleQueue._tryIR = true;
 
+    console.log('create settimeout');
     // w8 one tick
     setTimeout(() => {
         // check if queue empty

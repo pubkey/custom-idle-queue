@@ -1,7 +1,6 @@
 "use strict";
 
 var _index = require("./index.js");
-
 /**
  * because babel can only export on default-attribute,
  * we use this for the non-module-build
@@ -10,6 +9,7 @@ var _index = require("./index.js");
  * but
  * var IdleQueue = require('custom-idle-queue');
  */
+
 module.exports = {
   IdleQueue: _index.IdleQueue
 };

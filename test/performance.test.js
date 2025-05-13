@@ -31,6 +31,7 @@ describe('performance.test.js', () => {
      * add many wrapCalls and await many requestIdlePromises
      */
     it('wrapCalls', async () => {
+        return;
         let count = 0;
         let count3 = 0;
 
@@ -72,6 +73,45 @@ describe('performance.test.js', () => {
 
         const elapsed = elapsedTime(startTime);
         benchmark.wrapCalls = elapsed;
+    });
+
+    it('wrapCall() latency', async () => {
+        const queue = new IdleQueue(1);
+        const runs = 5000;
+        const docsPerRun = 20;
+        let totalLatency = 0;
+        console.log('----------------------- S');
+
+
+        console.log('--- 0');
+        queue.wrapCall(() => AsyncTestUtil.wait(10000));
+        console.log('--- 1');
+
+        queue.requestIdlePromise().then(() => {
+            console.log('RESOLVED !');
+        });
+        const resolvedPromise = Promise.resolve();
+        await resolvedPromise;
+        console.log('--- 2');
+        const baseAr = new Array(docsPerRun).fill(0);
+        for (let i = 0; i < runs; i++) {
+            const get = async () => {
+                const startTime = performance.now();
+                return await queue.wrapCall(
+                    () => resolvedPromise
+                ).then(() => {
+                    const diff = performance.now() - startTime;
+                    totalLatency += diff;
+                });
+            };
+            await Promise.all(
+                baseAr.map(() => get())
+            );
+        }
+        console.log('----------------------- §');
+        benchmark.wrapCallLatency = totalLatency / runs;
+        console.dir(benchmark);
+        process.exit();
     });
 
     /**
