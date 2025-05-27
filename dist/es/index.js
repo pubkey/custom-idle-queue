@@ -98,7 +98,6 @@ IdleQueue.prototype = {
    */
   requestIdlePromise: function requestIdlePromise(options) {
     var _this2 = this;
-    console.log('requestIdlePromise() 1');
     options = options || {};
     var resolve;
     var prom = new Promise(function (res) {
@@ -108,7 +107,6 @@ IdleQueue.prototype = {
       _removeIdlePromise(_this2, prom);
       resolve();
     };
-    console.log('requestIdlePromise() 2');
     prom._manRes = resolveFromOutside;
     if (options.timeout) {
       // if timeout has passed, resolve promise even if not idle
@@ -117,11 +115,8 @@ IdleQueue.prototype = {
       }, options.timeout);
       prom._timeoutObj = timeoutObj;
     }
-    console.log('requestIdlePromise() 3');
     this._iC.add(prom);
-    console.log('requestIdlePromise() 4');
     _tryIdleCall(this);
-    console.log('requestIdlePromise() 5');
     return prom;
   },
   /**
@@ -228,7 +223,7 @@ function _tryIdleCall(idleQueue) {
   // ensure this does not run in parallel
   if (idleQueue._tryIR || idleQueue._iC.size === 0) return;
   idleQueue._tryIR = true;
-  console.log('create settimeout');
+
   // w8 one tick
   setTimeout(function () {
     // check if queue empty
