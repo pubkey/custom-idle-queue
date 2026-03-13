@@ -102,6 +102,25 @@ describe('idle-queue.test.js', () => {
                 assert.equal(queue._qC, 0);
                 queue.clear();
             });
+            it('should pass the error and decrement counter if an async function synchronously throws', async () => {
+                const queue = new IdleQueue();
+                let thrown = false;
+
+                try {
+                    await queue.wrapCall(() => {
+                        // This intentionally throws *synchronously* before returning a Promise
+                        throw new Error('Sync Throw In Async Function');
+                    });
+                } catch (err) {
+                    thrown = true;
+                    assert.ok(err);
+                }
+
+                assert.ok(thrown);
+                assert.equal(queue._qC, 0);
+                assert.ok(queue.isIdle()); // verify no deadlock
+                queue.clear();
+            });
         });
         describe('.requestIdlePromise()', () => {
             it('should resolve the promise', async () => {

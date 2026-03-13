@@ -17,6 +17,15 @@ const elapsedTime = before => {
     return AsyncTestUtil.performanceNow() - before;
 };
 
+const averageWithoutSlowest = (times, stripPercentage = 0.10) => {
+    if (times.length === 0) return 0;
+    const sorted = times.slice().sort((a, b) => a - b);
+    const stripCount = Math.floor(sorted.length * stripPercentage);
+    const toAverage = sorted.slice(0, sorted.length - stripCount);
+    const sum = toAverage.reduce((a, b) => a + b, 0);
+    return sum / toAverage.length;
+};
+
 const getWaitPromise = (time = 1) => {
     return new Promise(res => {
         setTimeout(() => {
@@ -31,7 +40,6 @@ describe('performance.test.js', () => {
      * add many wrapCalls and await many requestIdlePromises
      */
     it('wrapCalls', async () => {
-        return;
         let count = 0;
         let count3 = 0;
 
@@ -75,43 +83,104 @@ describe('performance.test.js', () => {
         benchmark.wrapCalls = elapsed;
     });
 
-    it('wrapCall() latency', async () => {
+    it('wrapCall() latency - sync functions', async () => {
         const queue = new IdleQueue(1);
         const runs = 5000;
-        const docsPerRun = 20;
-        let totalLatency = 0;
-        console.log('----------------------- S');
+        const times = [];
 
+        await queue.requestIdlePromise();
 
-        console.log('--- 0');
-        queue.wrapCall(() => AsyncTestUtil.wait(10000));
-        console.log('--- 1');
-
-        queue.requestIdlePromise().then(() => {
-            console.log('RESOLVED !');
-        });
-        const resolvedPromise = Promise.resolve();
-        await resolvedPromise;
-        console.log('--- 2');
-        const baseAr = new Array(docsPerRun).fill(0);
         for (let i = 0; i < runs; i++) {
-            const get = async () => {
-                const startTime = performance.now();
-                return await queue.wrapCall(
-                    () => resolvedPromise
-                ).then(() => {
-                    const diff = performance.now() - startTime;
-                    totalLatency += diff;
-                });
-            };
-            await Promise.all(
-                baseAr.map(() => get())
+            const startTime = AsyncTestUtil.performanceNow();
+            await queue.wrapCall(() => {
+                const diff = AsyncTestUtil.performanceNow() - startTime;
+                times.push(diff);
+            });
+        }
+
+        benchmark.wrapCallLatencySync = averageWithoutSlowest(times, 0.10);
+    });
+
+    it('wrapCall() latency - async functions (immediate resolve)', async () => {
+        const queue = new IdleQueue(1);
+        const runs = 5000;
+        const times = [];
+        const resolvedPromise = Promise.resolve();
+
+        await queue.requestIdlePromise();
+
+        const get = async () => {
+            const startTime = AsyncTestUtil.performanceNow();
+            await queue.wrapCall(() => resolvedPromise).then(() => {
+                const diff = AsyncTestUtil.performanceNow() - startTime;
+                times.push(diff);
+            });
+        };
+
+        // Sequential
+        for (let i = 0; i < runs; i++) {
+            await get();
+        }
+
+        benchmark.wrapCallLatencyAsyncImmediate = averageWithoutSlowest(times, 0.10);
+    });
+
+    it('wrapCall() latency - high concurrency', async () => {
+        const queue = new IdleQueue(1);
+        const runs = 5000;
+        const times = [];
+        const resolvedPromise = Promise.resolve();
+
+        await queue.requestIdlePromise();
+
+        const promises = [];
+        for (let i = 0; i < runs; i++) {
+            const startTime = AsyncTestUtil.performanceNow();
+            promises.push(
+                queue.wrapCall(() => resolvedPromise).then(() => {
+                    const diff = AsyncTestUtil.performanceNow() - startTime;
+                    times.push(diff);
+                })
             );
         }
-        console.log('----------------------- §');
-        benchmark.wrapCallLatency = totalLatency / runs;
-        console.dir(benchmark);
-        process.exit();
+        await Promise.all(promises);
+
+        benchmark.wrapCallLatencyHighConcurrency = averageWithoutSlowest(times, 0.10);
+    });
+
+    it('wrapCall() latency - returning promise', async () => {
+        const queue = new IdleQueue(1);
+        const runs = 5000;
+        const times = [];
+        const resolvedPromise = Promise.resolve();
+
+        await queue.requestIdlePromise();
+
+        for (let i = 0; i < runs; i++) {
+            const startTime = AsyncTestUtil.performanceNow();
+            await queue.wrapCall(() => resolvedPromise);
+            const diff = AsyncTestUtil.performanceNow() - startTime;
+            times.push(diff);
+        }
+
+        benchmark.wrapCallLatencyReturningPromise = averageWithoutSlowest(times, 0.10);
+    });
+
+    it('wrapCall() latency - returning non-promise', async () => {
+        const queue = new IdleQueue(1);
+        const runs = 5000;
+        const times = [];
+
+        await queue.requestIdlePromise();
+
+        for (let i = 0; i < runs; i++) {
+            const startTime = AsyncTestUtil.performanceNow();
+            await queue.wrapCall(() => 42); // returning a constant non-promise
+            const diff = AsyncTestUtil.performanceNow() - startTime;
+            times.push(diff);
+        }
+
+        benchmark.wrapCallLatencyReturningNonPromise = averageWithoutSlowest(times, 0.10);
     });
 
     /**
