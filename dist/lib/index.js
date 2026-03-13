@@ -80,7 +80,7 @@ IdleQueue.prototype = {
       this.unlock();
       throw err;
     }
-    if (!maybePromise.then || typeof maybePromise.then !== 'function') {
+    if (!maybePromise || typeof maybePromise.then !== 'function') {
       // no promise
       this.unlock();
       return maybePromise;
