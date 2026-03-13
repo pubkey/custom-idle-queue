@@ -68,7 +68,7 @@ IdleQueue.prototype = {
    * @performance is really important here because
    * it is often used in hot paths.
    * @param  {function}  fun
-   * @return {Promise<any>}
+   * @return {Promise<any> | any}
    */
   wrapCall: function wrapCall(fun) {
     var _this = this;
@@ -82,10 +82,6 @@ IdleQueue.prototype = {
       throw err;
     }
     if (result && typeof result.then === 'function') {
-      /**
-       * Use a single .then(onFulfilled, onRejected) instead of .then().catch()
-       * to save one Promise allocation per async call.
-       */
       return result.then(function (ret) {
         _this._qC--;
         _tryIdleCall(_this);
@@ -95,11 +91,10 @@ IdleQueue.prototype = {
         _tryIdleCall(_this);
         throw err;
       });
-    } else {
-      this._qC--;
-      _tryIdleCall(this);
-      return result;
     }
+    this._qC--;
+    _tryIdleCall(this);
+    return result;
   },
   /**
    * does the same as requestIdleCallback() but uses promises instead of the callback

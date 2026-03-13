@@ -66,7 +66,7 @@ IdleQueue.prototype = {
      * @performance is really important here because
      * it is often used in hot paths.
      * @param  {function}  fun
-     * @return {Promise<any>}
+     * @return {Promise<any> | any}
      */
     wrapCall(fun) {
         this._qC++;
@@ -81,10 +81,6 @@ IdleQueue.prototype = {
         }
 
         if (result && typeof result.then === 'function') {
-            /**
-             * Use a single .then(onFulfilled, onRejected) instead of .then().catch()
-             * to save one Promise allocation per async call.
-             */
             return result.then(
                 (ret) => {
                     this._qC--;
@@ -97,11 +93,11 @@ IdleQueue.prototype = {
                     throw err;
                 }
             );
-        } else {
-            this._qC--;
-            _tryIdleCall(this);
-            return result;
         }
+
+        this._qC--;
+        _tryIdleCall(this);
+        return result;
     },
 
     /**
