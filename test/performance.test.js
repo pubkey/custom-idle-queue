@@ -31,7 +31,6 @@ describe('performance.test.js', () => {
      * add many wrapCalls and await many requestIdlePromises
      */
     it('wrapCalls', async () => {
-        return;
         let count = 0;
         let count3 = 0;
 
