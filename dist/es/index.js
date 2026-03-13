@@ -67,28 +67,32 @@ IdleQueue.prototype = {
   wrapCall: function wrapCall(fun) {
     var _this = this;
     this._qC++;
-    var maybePromise;
+    var result;
     try {
-      maybePromise = fun();
+      result = fun();
     } catch (err) {
-      this.unlock();
+      this._qC--;
+      _tryIdleCall(this);
       throw err;
     }
-    if (!maybePromise || typeof maybePromise.then !== 'function') {
-      // no promise
-      this.unlock();
-      return maybePromise;
-    } else {
-      // promise
-      return maybePromise.then(function (ret) {
-        // sucessfull -> unlock before return
-        _this.unlock();
+    if (result && typeof result.then === 'function') {
+      /**
+       * Use a single .then(onFulfilled, onRejected) instead of .then().catch()
+       * to save one Promise allocation per async call.
+       */
+      return result.then(function (ret) {
+        _this._qC--;
+        _tryIdleCall(_this);
         return ret;
-      })["catch"](function (err) {
-        // not sucessfull -> unlock before throwing
-        _this.unlock();
+      }, function (err) {
+        _this._qC--;
+        _tryIdleCall(_this);
         throw err;
       });
+    } else {
+      this._qC--;
+      _tryIdleCall(this);
+      return result;
     }
   },
   /**
